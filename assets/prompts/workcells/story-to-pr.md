@@ -10,6 +10,8 @@ factory_runs/{{run_id}}/story.json
 
 Use `{{repo_path}}` as the only working tree.
 
+Do not invent dates. If a date or timestamp is needed, run `date -u` and use that output.
+
 ## Work
 
 1. Inspect repo instructions and existing tests before editing.
@@ -30,6 +32,7 @@ For starter/demo runs, prefer a local diff summary over git history changes. Do 
 
 Write `factory_runs/{{run_id}}/story-to-pr.md` with:
 
+- `<!-- status: done -->`, `<!-- status: needs-human -->`, or `<!-- status: failed -->` as the first line
 - status: `done`, `needs-human`, or `failed`
 - implementation summary
 - changed files

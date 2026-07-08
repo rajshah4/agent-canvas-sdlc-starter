@@ -41,13 +41,17 @@ def check_server(base: str) -> tuple[bool, str]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--base", default="http://localhost:8000")
-    parser.add_argument("--repo", type=Path, required=True)
+    parser.add_argument("--repo", type=Path)
     args = parser.parse_args()
 
     ok = True
     server_ok, server_msg = check_server(args.base)
     print(("OK " if server_ok else "FAIL ") + server_msg)
     ok = ok and server_ok
+
+    if not args.repo:
+        print("INFO no --repo provided; skipped scaffolded file checks.")
+        return 0 if ok else 1
 
     repo = args.repo.resolve()
     if not repo.is_dir():

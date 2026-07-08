@@ -14,7 +14,18 @@ import agent_canvas_delegate as canvas
 
 
 ACTIVE_WORK_CELLS = ("story-to-pr", "code-review", "qa")
-STATUS_RE = re.compile(r"status:\s*`?([A-Za-z0-9_. -]+)`?", re.IGNORECASE)
+VALID_STATUSES = {
+    "done",
+    "pass",
+    "findings",
+    "needs-human",
+    "failed",
+    "fail",
+    "partial",
+    "blocked",
+}
+STATUS_MARKER_RE = re.compile(r"<!--\s*status:\s*([A-Za-z0-9_. -]+)\s*-->", re.IGNORECASE)
+STATUS_INLINE_RE = re.compile(r"(?:^|\|)\s*[*_`#\s-]*status[*_`#\s-]*[:|]\s*[*_` ]*([A-Za-z0-9_. -]+)", re.IGNORECASE)
 
 
 def write_json(path: Path, data: Any) -> None:
@@ -46,8 +57,46 @@ def render_prompt(path: Path, variables: dict[str, str]) -> str:
 def artifact_status(path: Path) -> str:
     if not path.exists():
         return "missing"
-    match = STATUS_RE.search(path.read_text(encoding="utf-8", errors="replace"))
-    return match.group(1).strip() if match else "written"
+    text = path.read_text(encoding="utf-8", errors="replace")
+
+    marker = STATUS_MARKER_RE.search(text)
+    if marker:
+        return normalize_status(marker.group(1))
+
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        inline = STATUS_INLINE_RE.search(line)
+        if inline:
+            return normalize_status(inline.group(1))
+        if re.match(r"^\s*#+\s*status\s*$", line, re.IGNORECASE):
+            for next_line in lines[index + 1:]:
+                stripped = strip_status_cell(next_line)
+                if stripped:
+                    return normalize_status(stripped)
+        if re.search(r"\bstatus\b", line, re.IGNORECASE) and "|" in line:
+            cells = [strip_status_cell(cell) for cell in line.split("|")]
+            for cell_index, cell in enumerate(cells):
+                if cell.lower() == "status" and cell_index + 1 < len(cells):
+                    return normalize_status(cells[cell_index + 1])
+    return "written"
+
+
+def strip_status_cell(value: str) -> str:
+    stripped = value.strip().strip("|").strip()
+    stripped = re.sub(r"^[#*\-_\s`]+|[#*\-_\s`]+$", "", stripped)
+    return stripped.strip()
+
+
+def normalize_status(value: str) -> str:
+    token = strip_status_cell(value).lower()
+    token = token.replace("_", "-").replace(" ", "-")
+    if token in {"needs-human", "need-human", "human-needed", "blocked"}:
+        return "needs-human" if token != "blocked" else "blocked"
+    if token in {"passes", "passed"}:
+        return "pass"
+    if token in {"failure"}:
+        return "failed"
+    return token if token in VALID_STATUSES else strip_status_cell(value)
 
 
 def child_prompt(args: argparse.Namespace, cell: str) -> str:
@@ -158,7 +207,9 @@ def should_reuse_entry(args: argparse.Namespace, entry: dict[str, Any]) -> bool:
     artifact = args.repo / str(entry.get("artifact", ""))
     status = artifact_status(artifact)
     entry["artifact_status"] = status
-    return status != "missing" or bool(entry.get("id"))
+    if status in VALID_STATUSES:
+        return True
+    return bool(entry.get("id"))
 
 
 def wait_existing_child(
@@ -230,7 +281,7 @@ def run_factory(args: argparse.Namespace) -> int:
         write_json(children_path, entries)
         write_children_summary(run_dir, entries)
 
-        if existing and existing is entry and entry.get("artifact_status") != "missing":
+        if existing and existing is entry and entry.get("artifact_status") in VALID_STATUSES:
             time.sleep(args.child_spacing_seconds)
             continue
 

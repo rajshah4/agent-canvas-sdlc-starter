@@ -68,6 +68,56 @@ def _acceptance_criteria(text: str) -> list[str]:
     return [item for item in criteria if item]
 
 
+def _clean_line(line: str) -> str:
+    return re.sub(r"\s+", " ", line.strip().lstrip("-*").strip()).strip()
+
+
+def _decision_section_lines(text: str) -> list[str]:
+    lines = text.splitlines()
+    in_section = False
+    result: list[str] = []
+    for line in lines:
+        stripped = line.strip()
+        if re.match(r"^#+\s*(open questions?|unresolved decisions?|decisions? needed|decision log|questions?)\b", stripped, re.I):
+            in_section = True
+            continue
+        if in_section and stripped.startswith("#"):
+            in_section = False
+        if in_section and not stripped.startswith(("-", "*")) and re.match(r"^[A-Za-z][A-Za-z0-9 -]+:\s*$", stripped):
+            in_section = False
+        if in_section and stripped.startswith(("-", "*")):
+            cleaned = _clean_line(stripped)
+            if cleaned:
+                result.append(cleaned)
+    return result
+
+
+def _stakeholder_options(text: str) -> list[str]:
+    options: list[str] = []
+    for line in text.splitlines():
+        cleaned = _clean_line(line)
+        match = re.match(r"([A-Z][A-Za-z0-9 _.-]{1,40})\s+(?:wants|prefers|asked for|is asking for)\s+(.+)", cleaned)
+        if match:
+            options.append(f"{match.group(1)}: {match.group(2).rstrip('.')}")
+    return options
+
+
+def _append_needed(needed: list[dict[str, Any]], question: str, *, options: list[str] | None = None, impact: str = "May change scope, behavior, UX, data, security, QA, or rollout.", needed_from: str = "human owner") -> None:
+    normalized = question.rstrip(".")
+    if not normalized.endswith("?"):
+        normalized += "?"
+    if any(item.get("question") == normalized for item in needed):
+        return
+    needed.append(
+        {
+            "question": normalized,
+            "options": options or [],
+            "impact": impact,
+            "needed_from": needed_from,
+        }
+    )
+
+
 def _decisions(text: str, criteria: list[str]) -> dict[str, list[Any]]:
     lower = text.lower()
     known: list[str] = []
@@ -78,25 +128,62 @@ def _decisions(text: str, criteria: list[str]) -> dict[str, list[Any]]:
         if "not implemented" in item_lower or "out of scope" in item_lower:
             known.append(item)
 
+    for line in _decision_section_lines(text):
+        _append_needed(needed, line, needed_from="story owner")
+
+    options = _stakeholder_options(text)
+    if len(options) >= 2 and any(word in lower for word in ("disagree", "different", "vs", "but", "however", "has not weighed in", "not weighed in")):
+        _append_needed(
+            needed,
+            "Which stakeholder option should be implemented for this slice?",
+            options=options,
+            impact="Changes user-visible behavior or implementation scope.",
+            needed_from="product/design owner",
+        )
+
+    for line in text.splitlines():
+        cleaned = _clean_line(line)
+        cleaned_lower = cleaned.lower()
+        if not cleaned:
+            continue
+        if "?" in cleaned and any(word in cleaned_lower for word in ("should", "which", "whether", "can we", "do we")):
+            _append_needed(needed, cleaned, needed_from="story owner")
+        if any(token in cleaned_lower for token in ("tbd", "todo decision", "needs decision", "decision needed", "not weighed in", "needs design", "needs product")):
+            _append_needed(needed, cleaned, needed_from="human owner")
+
     if (
-        "decision needed" in lower
-        or "out of scope" in lower
-        or "not implemented" in lower
-        or "sync across devices" in lower
-        or "cross-device" in lower
-        or "requires an api" in lower
-        or "data model decision" in lower
+        not needed
+        and (
+            "decision needed" in lower
+            or "out of scope" in lower
+            or "not implemented" in lower
+        )
     ):
-        needed.append(
-            {
-                "question": "Should this story stay local-only for the first slice, or include cross-device/backend persistence?",
-                "options": [
-                    "Local-only first slice with no backend persistence",
-                    "Cross-device sync with API and data model work"
-                ],
-                "impact": "Changes scope from a starter UI/local behavior slice to backend API, data model, persistence, and broader QA work.",
-                "needed_from": "product owner"
-            }
+        _append_needed(
+            needed,
+            "Which deferred or unresolved scope should remain out of the first slice?",
+            impact="Changes the safe implementation boundary for this starter run.",
+            needed_from="product owner",
+        )
+
+    if any(
+        phrase in lower
+        for phrase in (
+            "sync across devices",
+            "cross-device",
+            "requires an api",
+            "data model decision",
+        )
+    ):
+        _append_needed(
+            needed,
+            "Should this story stay local-only for the first slice, or include cross-device/backend persistence?",
+            options=[
+                "Local-only first slice with no backend persistence",
+                "Cross-device sync with API and data model work",
+            ],
+            impact="Changes scope from a starter UI/local behavior slice to backend API, data model, persistence, and broader QA work.",
+            needed_from="product owner",
         )
 
     return {"known": known, "needed": needed}
@@ -226,7 +313,10 @@ def normalize(args: argparse.Namespace) -> dict[str, Any]:
     data, raw = _read_input(args.input)
     source_system = args.source_system
     if source_system == "auto":
-        source_system = "file" if isinstance(data, str) else "webhook"
+        if isinstance(data, str):
+            source_system = "pasted" if args.input.suffix.lower() in {".md", ".markdown", ".txt"} else "file"
+        else:
+            source_system = "webhook"
     story = _text_story(data, source_system) if isinstance(data, str) else _json_story(data, source_system)
 
     if args.source_url:

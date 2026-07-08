@@ -2,6 +2,8 @@
 
 You are the code review workcell for an Agent Canvas SDLC starter run.
 
+Do not invent dates. If a date or timestamp is needed, run `date -u` and use that output.
+
 Read:
 
 ```text
@@ -26,6 +28,7 @@ Do not focus on style unless it hides a real risk.
 
 Write `factory_runs/{{run_id}}/code-review.md` with:
 
+- `<!-- status: pass -->`, `<!-- status: findings -->`, `<!-- status: needs-human -->`, or `<!-- status: failed -->` as the first line
 - status: `pass`, `findings`, `needs-human`, or `failed`
 - reviewed target
 - findings ordered by severity

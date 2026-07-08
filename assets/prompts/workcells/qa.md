@@ -2,6 +2,8 @@
 
 You are the QA workcell for an Agent Canvas SDLC starter run.
 
+Do not invent dates. If a date or timestamp is needed, run `date -u` and use that output.
+
 Read:
 
 ```text
@@ -17,6 +19,7 @@ factory_runs/{{run_id}}/code-review.md
 3. Add focused tests only when coverage is missing and safe.
 4. Capture UI or browser evidence for UI-visible behavior when available.
 5. Report missing dependencies, credentials, browsers, or services honestly.
+6. Record browser/tool availability explicitly: whether Playwright, a browser MCP, local browsers, credentials, and a dev server were available.
 
 For starter/demo runs, do not commit QA changes unless the user explicitly asks for commits. If you add or change tests, leave them in the working tree and report the files changed.
 
@@ -24,9 +27,11 @@ For starter/demo runs, do not commit QA changes unless the user explicitly asks 
 
 Write `factory_runs/{{run_id}}/qa.md` with:
 
+- `<!-- status: pass -->`, `<!-- status: fail -->`, or `<!-- status: needs-human -->` as the first line
 - status: `pass`, `fail`, or `needs-human`
 - commands run
 - tests added or changed
+- tool availability decision
 - evidence paths
 - acceptance criteria status
 - residual risk
