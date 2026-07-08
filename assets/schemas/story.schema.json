@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Agent Canvas SDLC Starter Story",
+  "type": "object",
+  "required": ["source", "request", "repo", "decisions"],
+  "additionalProperties": false,
+  "properties": {
+    "source": {
+      "type": "object",
+      "required": ["system", "url", "id", "raw_payload_path"],
+      "additionalProperties": false,
+      "properties": {
+        "system": {
+          "type": "string",
+          "enum": ["pasted", "file", "github", "jira", "linear", "webhook", "unknown"]
+        },
+        "url": {"type": "string"},
+        "id": {"type": "string"},
+        "raw_payload_path": {"type": "string"}
+      }
+    },
+    "request": {
+      "type": "object",
+      "required": ["title", "body", "acceptance_criteria", "priority", "labels", "comments", "attachments"],
+      "additionalProperties": false,
+      "properties": {
+        "title": {"type": "string", "minLength": 1},
+        "body": {"type": "string"},
+        "acceptance_criteria": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "priority": {"type": "string"},
+        "labels": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "comments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["author", "body"],
+            "additionalProperties": false,
+            "properties": {
+              "author": {"type": "string"},
+              "body": {"type": "string"}
+            }
+          }
+        },
+        "attachments": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      }
+    },
+    "repo": {
+      "type": "object",
+      "required": ["url", "local_path", "base_branch"],
+      "additionalProperties": false,
+      "properties": {
+        "url": {"type": "string"},
+        "local_path": {"type": "string"},
+        "base_branch": {"type": "string"}
+      }
+    },
+    "decisions": {
+      "type": "object",
+      "required": ["known", "needed"],
+      "additionalProperties": false,
+      "properties": {
+        "known": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "needed": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["question", "options", "impact", "needed_from"],
+            "additionalProperties": false,
+            "properties": {
+              "question": {"type": "string"},
+              "options": {
+                "type": "array",
+                "items": {"type": "string"}
+              },
+              "impact": {"type": "string"},
+              "needed_from": {"type": "string"}
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "webhookEvent": "jira:issue_created",
+  "issue": {
+    "key": "PROJ-42",
+    "self": "https://jira.example.com/rest/api/3/issue/PROJ-42",
+    "fields": {
+      "summary": "Add a saved project filter",
+      "description": "Users want to save one project status filter for later.",
+      "priority": {"name": "Medium"},
+      "labels": ["frontend", "starter"]
+    }
+  }
+}

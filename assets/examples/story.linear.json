@@ -1,0 +1,12 @@
+{
+  "type": "Issue",
+  "action": "create",
+  "data": {
+    "identifier": "ENG-42",
+    "title": "Add a saved project filter",
+    "description": "Users want to save one project status filter for later.",
+    "priority": 2,
+    "labels": [{"name": "frontend"}, {"name": "starter"}],
+    "url": "https://linear.app/example/issue/ENG-42/add-a-saved-project-filter"
+  }
+}

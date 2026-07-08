@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent Canvas SDLC Starter"
+  short_description: "Start Agent Canvas SDLC workflows"
+  default_prompt: "Use $agent-canvas-sdlc-starter to scaffold an Agent Canvas SDLC workflow from a story, PRD, Jira issue, Linear issue, GitHub issue, or webhook payload."
