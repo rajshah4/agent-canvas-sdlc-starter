@@ -30,6 +30,9 @@ workflow reference is the shared factory pattern behind both.
 Prerequisites:
 
 - Local Agent Canvas/OpenHands Agent Server at `http://localhost:8000`.
+- A regular OpenHands model selected in Agent Canvas. Leave the Agent Canvas
+  profile picker blank for the starter; the run inherits the saved OpenHands
+  model setting.
 - Python 3.
 - A target repo that Agent Canvas can read. On macOS, prefer `/private/tmp` or
   `~/Code` for first runs.
@@ -48,6 +51,10 @@ The agent will:
 3. Act as the factory supervisor, or bootstrap one when starting from outside Agent Canvas.
 4. Create child conversations for implementation, review, and QA.
 5. End with a report summarizing links, statuses, evidence, and human gates.
+
+If Agent Canvas shows an unexpected model, check the saved OpenHands model
+setting before launching the factory. Leaving the profile picker blank means
+"use my current OpenHands default"; it does not choose a neutral model.
 
 ## What To Look For
 

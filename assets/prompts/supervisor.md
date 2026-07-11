@@ -37,7 +37,7 @@ python3 agent-canvas/scripts/run_agent_canvas_factory.py --base http://localhost
 
 The script creates separate Agent Canvas conversations through the local REST API, waits for each child, writes `children.json`, writes child final-response files, and creates the lifecycle report. Use it as your helper for the visible child-conversation pattern.
 
-Leave Agent Canvas profile selection blank unless the user explicitly asks for a specific profile. Use the current regular OpenHands model settings and the required terminal, file, and task-tracking tools.
+Leave Agent Canvas profile selection blank unless the user explicitly asks for a specific profile. Use the current regular OpenHands model settings and the required terminal, file, and task-tracking tools. If the user asks why a model was selected, explain that blank profile selection inherits the saved OpenHands model setting.
 
 Run the helper once per run ID. If you need to inspect progress, read `factory_runs/{{run_id}}/children.json` and the child artifacts. Do not rerun the helper while a child conversation is already active for the same workcell.
 

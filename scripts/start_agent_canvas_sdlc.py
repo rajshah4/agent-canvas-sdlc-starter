@@ -82,6 +82,16 @@ def merge_tools(existing: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return list(by_name.values())
 
 
+def settings_summary(settings: dict[str, Any]) -> dict[str, Any]:
+    agent_settings = settings.get("agent_settings") or {}
+    llm = agent_settings.get("llm") or {}
+    return {
+        "profile_selection": "blank",
+        "active_profile": settings.get("active_profile"),
+        "inherited_model": llm.get("model") if isinstance(llm, dict) else None,
+    }
+
+
 def render_supervisor(repo: Path, run_id: str) -> str:
     prompt_path = repo / "agent-canvas" / "prompts" / "supervisor.md"
     if not prompt_path.is_file():
@@ -148,6 +158,7 @@ def main() -> int:
         "id": conversation_id,
         "status": response.get("execution_status"),
         "max_iterations": response.get("max_iterations") or payload["max_iterations"],
+        "settings": settings_summary(settings),
         "tools": [tool["name"] for tool in payload["agent_settings"]["tools"]],
         "ui_url": f"{base}/conversations/{conversation_id}" if conversation_id else None,
     }
