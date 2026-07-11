@@ -1,377 +1,94 @@
 # Upgrade Map
 
-Use this reference when a user has run or understood the minimal factory and wants to improve one step.
+Use this reference after the user has run or understood the minimal factory and wants
+to improve one step.
 
-This map is capability-first. Do not present upgrades as a maturity ladder or as "add more prompts." Present each upgrade as a way to replace a starter workcell with a maintained skill, plugin, MCP server, CLI, CI workflow, or repo-specific guide.
-
-```text
-current minimal step -> proven skill/tool/approach -> new artifact or gate
-```
-
-## Operating Rules
-
-- Keep the minimal demo runnable and visible: pasted story or local file, `story.json`, supervisor conversation, child Canvas conversations, workcell artifacts, and `lifecycle-report.md`.
-- Prefer an existing team skill, OpenHands extension, MCP server, test framework, CI workflow, or repo tool before writing a custom long prompt.
-- Put capability-specific prompts and scripts with the capability skill or plugin. The starter skill should define the handoff contract and link to the stronger capability.
-- Do not substitute a paragraph about "what good review/QA/security/release should do" when an actual maintained extension exists and can run in the user's environment.
-- Upgrade one step at a time and keep the new artifact or human gate explicit.
-- If a linked skill or plugin is not installed, record that as setup work instead of pretending the factory can already use it.
-- Pin versions for production runs. Use `main` only for demos or active exploration.
-
-## Minimal Factory
-
-The starter path should stay small:
+Keep the first run small:
 
 ```text
 pasted story or local file
--> normalize to story.json
--> supervisor conversation
--> child Canvas conversations
--> workcell artifacts
+-> story.json
+-> supervisor
+-> implementation, review, and QA child conversations
 -> lifecycle-report.md
 ```
 
-This teaches the shape of a software factory without requiring live tracker credentials, production access, CI, PR permissions, or deployment systems.
+Then upgrade one box at a time. Prefer a maintained OpenHands extension, MCP server,
+CI workflow, repo guide, or team skill before writing a bigger prompt.
 
-## Starter Fallback Vs Official Extension
+## Rule Of Thumb
 
-Use the starter child prompts when the user is learning Agent Canvas, working locally, or missing the production surface an extension expects. Use the official extension when that surface exists.
+- Keep the starter workcells for local demos, first-time learning, and runs without
+  PRs, credentials, CI, release tags, or production access.
+- Use the real extension when the production surface exists.
+- Do not imitate a mature extension with a paragraph. Run or install the extension
+  and summarize its output into the factory artifacts.
 
-| Factory step | Starter fallback | Use the actual extension when... | Preferred extension or capability |
-| --- | --- | --- | --- |
-| Repo readiness | Human-readable setup checklist in the lifecycle report. | The user wants a repo prepared for repeatable agent work. | `OpenHands/extensions/plugins/onboarding` plus repo `AGENTS.md` and setup scripts. |
-| Tracker intake | Pasted story, local PRD, exported issue JSON, webhook payload, or MCP result normalized to `story.json`. | The team has a real tracker, connector credentials, or an automation trigger. | Linear, Jira, GitHub, `jira-issue-to-pr`, `linear-triage`, GitHub repo monitor, or MCP/webhook intake. |
-| Implementation | `story-to-pr` child conversation implements the smallest resolved local slice. | The repo has approval to create a branch/PR and local setup is understood. | OpenHands conversation or repo-specific implementation skill using `AGENTS.md`, setup scripts, CI, and GitHub skills. |
-| Code review | `code-review` child conversation writes `code-review.md` from the local diff/artifacts. | There is a real GitHub PR or review automation surface. | `OpenHands/extensions/plugins/pr-review`; use `OpenHands/extensions/skills/code-review` only for direct conversation review. |
-| QA | `qa` child conversation writes `qa.md` from local commands and available evidence. | There is a PR or runnable app where behavior can be exercised. | `OpenHands/extensions/plugins/qa-changes`, `OpenHands/extensions/skills/qa-changes`, Playwright, browser MCP, or team QA skill. |
-| Security | Human gate plus optional local scanner notes. | The repo needs dependency/container vulnerability remediation or policy-backed scanning. | `OpenHands/extensions/plugins/vulnerability-remediation`, CodeQL, secret scanning, dependency audit, SAST/DAST, or org policy tools. |
-| Release | Lifecycle report and handoff notes. | There is a tag, release workflow, changelog, or publish gate. | `OpenHands/extensions/plugins/release-notes`, release-please, semantic-release, GitHub Actions, and deployment approval gates. |
-| Observability | `children.json` and `lifecycle-report.md`. | Runs need auditability across many issues, agents, models, or environments. | Timeline artifacts, metrics, Laminar/OpenTelemetry-style traces, Sentry/Datadog/Grafana links, and status reports. |
+## Beginner Upgrade Menu
 
-## Skill And Tool Registry
-
-Start with this registry when users ask "what should I use instead of the starter prompt?"
-
-For a plugin-first implementation, use `references/plugin-registry.md` as the longer seed catalog. Keep this table focused on capability slots and the most common upgrade targets.
-
-That registry also includes a "Useful Areas To Extend" note for teams that want a broader menu without treating every advanced tool as part of the starter skill.
-
-| Capability | Concrete starting point | How it connects |
+| Step | Starter path | Upgrade when ready |
 | --- | --- | --- |
-| Tracker intake | Jira, Linear, or GitHub connector/MCP; OpenHands MCP docs: https://docs.openhands.dev/overview/model-context-protocol | Fetch issue, comments, labels, links, and attachments into `raw-source.json`, then normalize to `story.json`. |
-| Evented intake | OpenHands event automations: https://docs.openhands.dev/openhands/usage/automations/event-automations | Trigger factory runs from pull request, issue, webhook, or schedule events. |
-| Repository setup and gates | `OpenHands/extensions/plugins/onboarding`; OpenHands repository customization and hooks: https://docs.openhands.dev/openhands/usage/customization/repository | Generate or improve `AGENTS.md`, setup scripts, repo readiness notes, and stop hooks that enforce local checks before completion. |
-| Code review | OpenHands Automated Code Review: https://docs.openhands.dev/openhands/usage/use-cases/code-review | Replace the starter `code-review` workcell with `/codereview`, the `pr-review` plugin, or an org automation. |
-| Code review plugin | `OpenHands/extensions/plugins/pr-review`: https://github.com/OpenHands/extensions/tree/main/plugins/pr-review | Run as GitHub Action or OpenHands Automation; produce PR inline comments and a verdict. |
-| Code review skill | `OpenHands/extensions/skills/code-review`: https://github.com/OpenHands/extensions/tree/main/skills/code-review | Use directly in a conversation with `/add-skill` and `/codereview`, or as part of the PR review plugin. |
-| GitHub review posting | `OpenHands/extensions/skills/github-pr-review`: https://github.com/OpenHands/extensions/tree/main/skills/github-pr-review | Post structured inline comments and review summaries back to the PR. |
-| QA changes | OpenHands Automated QA Testing: https://docs.openhands.dev/openhands/usage/use-cases/qa-changes | Replace the starter `qa` workcell with `/qa-changes`, the QA plugin, or an org automation. |
-| QA plugin | `OpenHands/extensions/plugins/qa-changes`: https://github.com/OpenHands/extensions/tree/main/plugins/qa-changes | Run software as a user would, then post a structured QA report with evidence. |
-| QA skill | `OpenHands/extensions/skills/qa-changes`: https://github.com/OpenHands/extensions/tree/main/skills/qa-changes | Use directly in a conversation with `/add-skill` and `/qa-changes`. |
-| Browser QA | Playwright CLI for coding agents: https://playwright.dev/docs/getting-started-cli | Use installable Playwright skills, snapshots, screenshots, traces, and video from a QA workcell. |
-| Browser MCP | Playwright MCP: https://playwright.dev/docs/getting-started-mcp | Connect a browser automation MCP server for persistent exploratory UI testing. |
-| E2E evidence | Playwright Trace Viewer: https://playwright.dev/docs/trace-viewer-intro | Attach `trace.zip`, screenshots, videos, and HTML reports to QA artifacts. |
-| CI and PR operations | GitHub Actions plus available GitHub skills or plugins | Watch checks, fix failing CI, request review, and link the PR back to the factory run. |
-| Security | `OpenHands/extensions/plugins/vulnerability-remediation`, CodeQL, secret scanning, dependency audit, SAST/DAST tools | Scan first, remediate when actionable, and add security findings and policy gates before merge or deploy. |
-| Release notes | `OpenHands/extensions/plugins/release-notes`, release-please, semantic-release, or org release workflow | Generate or validate release notes from tags, PR metadata, commits, labels, and contributors. |
-| Observability | Run timeline, child conversation IDs, OpenTelemetry/Laminar-style traces, cost and token metrics | Make the factory inspectable, debuggable, and auditable. |
+| Intake | Paste a story or normalize a local file to `story.json`. | Connect Jira, Linear, GitHub Issues, MCP, webhook, or polling intake. |
+| Implementation | Use `story-to-pr` child for the smallest resolved local slice. | Add repo `AGENTS.md`, setup scripts, branch/PR creation, and repo-specific implementation guidance. |
+| Code review | Use local `code-review` child for demo diffs. | Use OpenHands `pr-review` for real PRs, or `code-review` skill for direct conversation review. |
+| QA | Use local `qa` child for focused commands and evidence. | Use OpenHands `qa-changes`, Playwright, browser MCP, API tests, or team QA skills. |
+| Security | Record a human gate for risky work. | Use `vulnerability-remediation`, CodeQL, secret scanning, dependency audit, SAST/DAST, or org policy tools. |
+| Release | End with `lifecycle-report.md` and handoff notes. | Use `release-notes`, release-please, semantic-release, GitHub Actions, and deploy approval gates. |
+| Repo readiness | Note setup gaps in the lifecycle report. | Use `onboarding`, `AGENTS.md`, setup scripts, and repo customization hooks. |
+| Observability | Use `children.json` and `lifecycle-report.md`. | Add timelines, metrics, trace links, CI links, tracker links, and status reports. |
 
-Treat this registry as editable. If a team has a stronger internal Playwright skill, code review skill, security skill, or release skill, point to that first and keep the starter prompt as the fallback.
+## Practical Recipes
 
-## Step Upgrades
+### Connect A Tracker
 
-### Story Intake
+Use when stories should enter from Jira, Linear, GitHub, or another tracker.
 
-Use when the user wants real work to enter the factory from a tracker or automation.
+1. Fetch or receive the raw issue payload.
+2. Store it as `factory_runs/<run-id>/raw-source.json` when possible.
+3. Normalize only the useful fields into `story.json`.
+4. Keep workcells tracker-neutral.
+5. Write back status only when explicitly authorized.
 
-Upgrade toward:
+### Upgrade Code Review
 
-- Jira, Linear, GitHub, or internal tracker MCP connectors.
-- Webhook or polling intake for continuous operation.
-- Raw payload storage, idempotency by source issue ID, and status/comment sync back to the tracker.
-- Backlog conversion skills such as a Confluence/Notion spec-to-backlog or spec-to-implementation skill when the source is a longer product document.
+Use the starter child while learning or reviewing a local diff.
 
-Wire into the factory:
+Use the actual OpenHands `pr-review` plugin when there is a GitHub PR, workflow,
+automation runner, or review token. Capture the PR review URL, inline comment links,
+verdict, and any blocking findings in `factory_runs/<run-id>/code-review.md`.
 
-- Fetch source data before normalization.
-- Store `factory_runs/<run-id>/raw-source.json`.
-- Keep `story.json` tracker-neutral.
-- Add `source.kind`, `source.url`, `source.id`, and `source.sync_target` fields when known.
+### Upgrade QA
 
-Artifacts or gates to add:
+Use the starter child while learning or when the environment is too small for a full
+QA run.
 
-- `factory_runs/<run-id>/intake.md`
-- `factory_runs/<run-id>/raw-source.json`
-- `factory_runs/<run-id>/sync-log.md`
-- human gate when tracker fields are incomplete, conflicting, or imply risky scope
+Use OpenHands `qa-changes`, Playwright, browser MCP, API tests, or CLI tests when the
+software can actually be run. Capture commands, screenshots, traces, videos, generated
+tests, acceptance status, and unable-to-verify notes in `factory_runs/<run-id>/qa.md`.
 
-### Story Normalization
+### Add Security Or Release
 
-Use when incoming stories vary widely in quality.
+Add these only when the story needs them.
 
-Upgrade toward:
+- Security: use `vulnerability-remediation` or the team's scanners and policy gates.
+- Release: use `release-notes` or the team's release workflow after review and QA.
+- Human approval remains required for secrets, production actions, merge, deploy,
+  rollback, and customer-impacting rollout.
 
-- Stronger JSON Schema validation.
-- Acceptance criteria extraction and coverage matrices.
-- Decision extraction for unresolved product, UX, API, data, security, cost, or rollout questions.
-- A repo or org-specific story-quality skill that knows the team's definition of ready.
+## Maximum Factory Shape
 
-Wire into the factory:
-
-- Keep `story.json` as the only required supervisor input.
-- Store unresolved decisions in `decisions.needed`, not in prose-only notes.
-- Fail early when acceptance criteria are absent or contradictory.
-
-Artifacts or gates to add:
-
-- `factory_runs/<run-id>/story.json`
-- `factory_runs/<run-id>/decision-log.md`
-- `factory_runs/<run-id>/acceptance-matrix.md`
-- human gate for ambiguous scope, missing acceptance criteria, or unresolved product decisions
-
-### Supervisor Orchestration
-
-Use when the minimal child-conversation factory should become more capable.
-
-Upgrade toward:
-
-- More specialized child Canvas conversations: planning, implementation, code review, QA, security, docs, release, and incident-readiness.
-- Safe parallelism for independent workcells.
-- Child retry, timeout, stuck-detection, and escalation policies.
-- A child registry that records conversation IDs, task status, elapsed time, artifacts, and blockers.
-
-Wire into the factory:
-
-- Keep Agent Canvas child conversations visible in the starter path.
-- Let the parent remain responsible for scope, sequencing, and final status.
-- Use SDK sub-agent delegation only inside a mature plugin or workflow that benefits from it. For the Agent Canvas starter, visible Canvas children are the scaling signal.
-
-Artifacts or gates to add:
-
-- `factory_runs/<run-id>/children.json`
-- `factory_runs/<run-id>/timeline.md`
-- `factory_runs/<run-id>/lifecycle-report.md`
-- human gate when a child reports `needs-human`
-
-### Implementation
-
-Use when the factory should touch code.
-
-Upgrade toward:
-
-- Branch or worktree creation.
-- Repo setup via README, AGENTS.md, `.openhands/setup.sh`, or equivalent project instructions.
-- Focused implementation of the smallest resolved slice.
-- Local tests, lint, type checks, and repo-specific quality hooks.
-- Pull request creation when credentials and approval are available.
-
-Wire into the factory:
-
-- Keep the starter `story-to-pr` prompt as the minimal fallback.
-- Replace it with a repo-specific implementation skill when the team has one.
-- Preserve the diff, commands run, assumptions, and any skipped checks.
-
-Artifacts or gates to add:
-
-- `factory_runs/<run-id>/story-to-pr.md`
-- branch name, diff path, or PR URL
-- `factory_runs/<run-id>/commands.log`
-- human gate before merge, deploy, or production-impacting changes
-
-### Code Review
-
-Use when the factory should provide independent quality control.
-
-Upgrade toward:
-
-- OpenHands `code-review` skill for manual conversation review.
-- OpenHands `pr-review` plugin for GitHub Actions or OpenHands Automation.
-- Repo-specific review guide skill that activates with `/codereview` and adds local rules without shadowing the default review framework.
-- Optional review sub-agents for large PRs when the chosen plugin supports them and the token/time budget is acceptable.
-- Static analysis, secret scanning, dependency review, and code owner checks for policy-backed review.
-
-Wire into the factory:
-
-- Keep the starter `code-review` child prompt only for local demo runs or local diffs without a PR.
-- Replace it with a child that invokes `/codereview` or runs the `pr-review` plugin when a real PR/review surface exists.
-- Pass the PR URL or diff, `story.json`, acceptance criteria, and previous findings.
-- Store the raw review summary even when inline comments are posted to GitHub.
-- Record whether findings are blocking, informational, or require a human owner.
-
-Artifacts or gates to add:
-
-- `factory_runs/<run-id>/code-review.md`
-- PR review URL or inline comment links
-- `pass`, `findings`, `needs-human`, or `failed` status
-- human gate for security, ownership, policy, data, migration, or architecture questions
-
-### QA
-
-Use when the factory should validate behavior by running the software, not just reading code.
-
-Upgrade toward:
-
-- OpenHands `qa-changes` skill or plugin for PR-focused QA.
-- A team Playwright skill for UI flows, screenshots, browser traces, videos, and repeatable evidence.
-- Playwright MCP when the agent needs persistent exploratory browser control.
-- Playwright Test when the team wants durable E2E tests committed to the repo.
-- API, CLI, SDK, and data migration test harnesses for non-UI changes.
-
-Wire into the factory:
-
-- Keep the starter `qa` child prompt only for local demo runs or small local changes.
-- Replace it with `/qa-changes`, the `qa-changes` plugin, or a Playwright-driven QA workcell when there is a runnable app, PR, or reviewable behavior.
-- Pass `story.json`, PR URL or diff, dev server instructions, test credentials policy, and priority scenarios.
-- Produce evidence from real execution: commands, HTTP responses, screenshots, traces, videos, or generated tests.
-- Report missing environment, browsers, credentials, or services honestly as `partial`, not `pass`.
-
-Artifacts or gates to add:
-
-- `factory_runs/<run-id>/qa.md`
-- `factory_runs/<run-id>/acceptance-matrix.md`
-- `factory_runs/<run-id>/ui-evidence/`
-- `factory_runs/<run-id>/playwright-report/`
-- human gate when validation requires unavailable systems, secrets, payments, production access, or unsafe data changes
-
-### Release And Delivery
-
-Use when the factory should shepherd work beyond local validation.
-
-Upgrade toward:
-
-- CI monitoring and failing-check repair.
-- Review request, merge readiness, and CODEOWNERS routing.
-- The OpenHands `release-notes` plugin when a release tag or GitHub release workflow exists.
-- Changelog, customer communication, feature flag, and rollback plans.
-- Deployment workflows with explicit human approval.
-
-Wire into the factory:
-
-- Treat release as its own child conversation or automation after review and QA.
-- Link CI, PR, tracker, QA evidence, and deployment plan from one release artifact.
-- Never let the agent merge, deploy, or roll back without the configured approval gate.
-
-Artifacts or gates to add:
-
-- `factory_runs/<run-id>/release.md`
-- CI links
-- release notes path
-- deployment and rollback notes
-- human gate before merge, deploy, rollback, or customer-impacting rollout
-
-### Security And Policy
-
-Use when the work touches auth, data, secrets, infrastructure, dependencies, external APIs, compliance, or customer-impacting behavior.
-
-Upgrade toward:
-
-- Security review skill or threat-modeling skill.
-- The OpenHands `vulnerability-remediation` plugin when dependency, container, or package vulnerability scanning should create fix PRs.
-- CodeQL, secret scanning, dependency audit, license policy, SBOM, SAST, DAST, or container scanning.
-- Org-specific policy checks for data classification, privacy, and access control.
-
-Wire into the factory:
-
-- Add a security child conversation only when risk justifies it.
-- Make policy tools deterministic where possible and have the agent summarize results.
-- Route unresolved security decisions to humans with owner, risk, and recommendation.
-
-Artifacts or gates to add:
-
-- `factory_runs/<run-id>/security.md`
-- scanner links or reports
-- policy exceptions requested
-- human gate for unresolved security, privacy, compliance, or production-risk questions
-
-### Observability
-
-Use when operators need to understand the factory run.
-
-Upgrade toward:
-
-- Run timeline and child conversation audit trail.
-- Token, cost, elapsed time, model profile, and retry metrics.
-- Links to tracker issue, PR, CI, code review, QA evidence, release notes, and deployment.
-- OpenTelemetry or hosted trace tools when available.
-
-Wire into the factory:
-
-- Make `children.json` the machine-readable index.
-- Make `lifecycle-report.md` the human-readable summary.
-- Include enough context for a user to resume or debug the run without re-reading every child conversation.
-
-Artifacts or gates to add:
-
-- `factory_runs/<run-id>/timeline.md`
-- `factory_runs/<run-id>/metrics.json`
-- dashboard or status-report artifact
-
-## Upgrade Recipes
-
-### Better Code Review
-
-Current minimal step:
-
-```text
-code-review child prompt -> code-review.md
-```
-
-Upgrade path:
-
-```text
-code-review child prompt
--> OpenHands pr-review plugin or code-review skill
--> PR inline comments, verdict, review URL, code-review.md
-```
-
-Add a repo-specific review guide only for local rules: architecture conventions, approval standards, risky files, test expectations, and known pitfalls. Do not copy the whole review framework into the starter skill.
-
-### Better QA
-
-Current minimal step:
-
-```text
-qa child prompt -> qa.md
-```
-
-Upgrade path:
-
-```text
-qa child prompt
--> OpenHands qa-changes plugin/skill or Playwright skill/MCP
--> commands, screenshots, traces, videos, acceptance matrix, qa.md
-```
-
-For UI work, prefer Playwright evidence over prose. For API, CLI, library, and backend work, prefer real commands or short reproducible scripts over "looks correct" review.
-
-### Maximum Factory Shape
-
-A maximal factory is not one huge skill. It is a set of replaceable skills and tools connected by stable artifacts:
+A larger factory is a set of replaceable parts, not one giant skill:
 
 ```text
 tracker/webhook/MCP
--> intake adapter
 -> story normalizer
 -> supervisor
--> planning child
--> implementation child
--> code review skill/plugin
--> QA skill/plugin/Playwright
--> security/policy gate
--> release/CI automation
+-> implementation
+-> PR review extension
+-> QA extension or Playwright
+-> security or release gate
 -> lifecycle report and sync back
 ```
 
-Each box can be upgraded independently. The starter skill should help users see the path, then point them to the best maintained capability for the box they want to strengthen.
-
-## Choosing The Next Upgrade
-
-Prefer the smallest upgrade that improves the user's current pain:
-
-- If stories are hard to enter, upgrade intake.
-- If stories are ambiguous, upgrade normalization and human gates.
-- If the demo does not feel like a factory, upgrade supervisor delegation while keeping visible child Canvas conversations.
-- If users want real engineering value, upgrade implementation, code review, and QA.
-- If teams need trust, upgrade policy gates, deterministic checks, and evidence.
-- If teams want continuous operation, upgrade webhook/polling, queues, retries, idempotency, and sync back.
-- If teams already have a better internal skill, connect that skill before building another generic prompt.
+Each part can be upgraded independently. The starter should help the user see the
+path, then point to the best maintained capability for the part they want to improve.
