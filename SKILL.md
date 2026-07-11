@@ -1,16 +1,22 @@
 ---
 name: agent-canvas-sdlc-starter
-description: Scaffold and run beginner-friendly Agent Canvas SDLC workflows from a story, PRD, Jira issue, Linear issue, GitHub issue, MCP-fetched tracker item, webhook payload, or polling automation. Use when Codex should help new Agent Canvas users normalize incoming work into story.json, create supervisor and workcell prompts, connect tracker intake adapters, preserve human gates, and produce implementation, code-review, QA, and lifecycle artifacts.
+description: Act as the factory supervisor for beginner-friendly Agent Canvas SDLC workflows from a story, PRD, Jira issue, Linear issue, GitHub issue, MCP-fetched tracker item, webhook payload, or polling automation. Use when Codex should help new Agent Canvas users normalize incoming work into story.json, create implementation/review/QA child conversations, connect tracker intake adapters, preserve human gates, and produce lifecycle artifacts.
 ---
 
 # Agent Canvas SDLC Starter
 
 Use this skill to help a new Agent Canvas user turn a work request into a small, inspectable SDLC workflow.
 
+Act as the software factory supervisor. Normalize the story, create focused child Agent Canvas conversations for implementation, review, and QA, collect their artifacts, preserve human gates, and finish with a lifecycle report.
+
+If you are already running inside Agent Canvas with terminal and file tools, perform the supervisor workflow directly. If you are outside Agent Canvas, use `scripts/start_agent_canvas_sdlc.py` to bootstrap a tool-enabled Agent Canvas conversation that follows the same supervisor instructions.
+
+Use the Agent Canvas agent profile named `default` for the supervisor and child conversations unless the user explicitly asks for a different profile.
+
 The minimal factory pattern is:
 
 ```text
-story intake -> story.json -> supervisor -> child Canvas conversations -> lifecycle report
+story intake -> story.json -> factory supervisor -> child Canvas conversations -> lifecycle report
 ```
 
 Keep the first run simple, but still create real child Agent Canvas conversations so the demo looks like a factory that can scale. Start with pasted text or a local PRD, then add Jira, Linear, GitHub, MCP, webhook, polling, repo changes, or extra gates only when the user wants to upgrade that step.
@@ -25,8 +31,8 @@ Keep the first run simple, but still create real child Agent Canvas conversation
 2. Normalize the source into `story.json` before starting Agent Canvas.
 3. Scaffold starter prompts and schema into the target repo with `scripts/scaffold_agent_canvas_sdlc.py`.
 4. Check local Agent Canvas readiness with `scripts/check_agent_canvas_ready.py`.
-5. Start or guide a tool-enabled supervisor conversation using `scripts/start_agent_canvas_sdlc.py` or `assets/prompts/supervisor.md`.
-6. Have the supervisor run `agent-canvas/scripts/run_agent_canvas_factory.py` so it creates `story-to-pr`, `code-review`, and `qa` child Canvas conversations.
+5. Act as the tool-enabled factory supervisor using `assets/prompts/supervisor.md`. If needed, bootstrap that supervisor run with `scripts/start_agent_canvas_sdlc.py`.
+6. Run `agent-canvas/scripts/run_agent_canvas_factory.py` as the supervisor so it creates `story-to-pr`, `code-review`, and `qa` child Canvas conversations.
 7. Inspect `children.json` plus artifacts under `factory_runs/<run-id>/` and iterate on decisions or blockers.
 
 ## Upgrade Map
@@ -78,7 +84,7 @@ Use this loop:
 
 ## Agent Canvas Workflow
 
-Use `references/agent-canvas-workflow.md` for the supervisor/workcell model and artifact contract.
+Use `references/agent-canvas-workflow.md` for the factory supervisor/workcell model and artifact contract.
 
 Default artifacts:
 
@@ -92,9 +98,9 @@ factory_runs/<run-id>/qa.md
 factory_runs/<run-id>/lifecycle-report.md
 ```
 
-The supervisor conversation coordinates. Child Canvas conversations do focused implementation, review, and QA work. Humans approve scope, secrets, risky decisions, merge, and deploy.
+You are the supervisor when the skill is running inside Agent Canvas with the needed tools. Child Canvas conversations do focused implementation, review, and QA work. Humans approve scope, secrets, risky decisions, merge, and deploy.
 
-The parent conversation must have terminal and file tools so it can run the repo-local launcher. A server may be reachable while the selected agent profile lacks the tools needed to scaffold files, start child conversations, or write artifacts.
+The active supervisor agent must have terminal and file tools so it can run the repo-local child-conversation helper. A server may be reachable while the selected agent profile lacks the tools needed to scaffold files, start child conversations, or write artifacts.
 
 The repository path must also be readable by Agent Canvas. On macOS, prefer `/private/tmp` or `~/Code` for first runs instead of protected folders such as `Documents` or `Desktop`.
 
@@ -130,19 +136,19 @@ Check local Agent Canvas and scaffolded files:
 python3 scripts/check_agent_canvas_ready.py --base http://localhost:8000 --repo /path/to/repo
 ```
 
-Start the parent supervisor conversation:
+Bootstrap the factory supervisor from outside Agent Canvas:
 
 ```bash
-python3 scripts/start_agent_canvas_sdlc.py --base http://localhost:8000 --repo /path/to/repo --run-id demo-001
+python3 scripts/start_agent_canvas_sdlc.py --base http://localhost:8000 --repo /path/to/repo --run-id demo-001 --agent-profile default
 ```
 
 ## Bundled Assets
 
 - `assets/schemas/story.schema.json`: stable story handoff contract.
-- `assets/scripts/agent_canvas_delegate.py`: local Agent Canvas API helper used by the child launcher.
-- `assets/scripts/run_agent_canvas_factory.py`: repo-local parent-side launcher that creates child Canvas conversations.
+- `assets/scripts/agent_canvas_delegate.py`: local Agent Canvas API helper used by the child-conversation helper.
+- `assets/scripts/run_agent_canvas_factory.py`: repo-local supervisor helper that creates child Canvas conversations.
 - `assets/prompts/intake-normalizer.md`: agent prompt for fuzzy or connector-fetched story normalization.
-- `assets/prompts/supervisor.md`: parent Agent Canvas conversation prompt.
+- `assets/prompts/supervisor.md`: factory supervisor prompt.
 - `assets/prompts/workcells/story-to-pr.md`: implementation workcell prompt.
 - `assets/prompts/workcells/code-review.md`: review workcell prompt.
 - `assets/prompts/workcells/qa.md`: QA workcell prompt.

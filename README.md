@@ -3,12 +3,13 @@
 Let's build a software automation factory that starts simple, then grows as you add
 your own integrations, gates, and team practices.
 
-The core idea is small: use Agent Canvas to run a supervisor conversation that starts
-real child conversations for implementation, review, and QA. You can watch the work
-move from one step to the next instead of treating the agent like one giant black box.
+The core idea is small: the agent acts as a software factory supervisor in Agent
+Canvas and creates real child conversations for implementation, review, and QA.
+You can watch the work move from one step to the next instead of treating the
+agent like one giant black box.
 
 ```text
-story -> story.json -> supervisor -> implementation child -> review child -> QA child -> lifecycle report
+story -> story.json -> factory supervisor -> implementation child -> review child -> QA child -> lifecycle report
 ```
 
 A "story" is just the work request. It can be a pasted feature request, a bug report,
@@ -18,8 +19,8 @@ For the first run, use something small and concrete.
 ## How It Works
 
 The software factory shape is based on `references/agent-canvas-workflow.md`.
-Start there when you want to understand and improve how the supervisor, child conversations,
-artifacts, sequencing, or workcell prompts fit together.
+Start there when you want to understand and improve how the supervisor, child
+conversations, artifacts, sequencing, or workcell prompts fit together.
 
 This README is the human quickstart. `SKILL.md` is what the agent reads. The
 workflow reference is the shared factory pattern behind both.
@@ -29,6 +30,7 @@ workflow reference is the shared factory pattern behind both.
 Prerequisites:
 
 - Local Agent Canvas/OpenHands Agent Server at `http://localhost:8000`.
+- An Agent Canvas agent profile named `default`.
 - Python 3.
 - A target repo that Agent Canvas can read. On macOS, prefer `/private/tmp` or
   `~/Code` for first runs.
@@ -44,8 +46,8 @@ The agent will:
 1. Turn the story into the shared story file at `factory_runs/<run-id>/story.json`.
 2. Add the starter Agent Canvas files to the target repo so the supervisor can run
    the factory there.
-3. Start a supervisor conversation.
-4. Have the supervisor create child conversations for implementation, review, and QA.
+3. Act as the factory supervisor, or bootstrap one when starting from outside Agent Canvas.
+4. Create child conversations for implementation, review, and QA.
 5. End with a report summarizing links, statuses, evidence, and human gates.
 
 ## What To Look For

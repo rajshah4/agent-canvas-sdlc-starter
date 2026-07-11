@@ -55,7 +55,8 @@ def main() -> int:
     print("\n".join(outputs))
     print("\nNext:")
     print(f"  python3 {skill_root / 'scripts' / 'normalize_story.py'} --input {repo / 'stories' / 'small-story.md'} --output {repo / 'factory_runs' / 'demo-001' / 'story.json'} --repo-local-path {repo}")
-    print(f"  python3 {skill_root / 'scripts' / 'start_agent_canvas_sdlc.py'} --base http://localhost:8000 --repo {repo} --run-id demo-001")
+    print("  If you are outside Agent Canvas, bootstrap the factory supervisor:")
+    print(f"  python3 {skill_root / 'scripts' / 'start_agent_canvas_sdlc.py'} --base http://localhost:8000 --repo {repo} --run-id demo-001 --agent-profile default")
     return 0
 
 

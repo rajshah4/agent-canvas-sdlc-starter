@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Start the starter SDLC supervisor conversation in local Agent Canvas."""
+"""Bootstrap a tool-enabled SDLC factory supervisor in local Agent Canvas."""
 
 from __future__ import annotations
 
@@ -13,6 +13,7 @@ from urllib.request import Request, urlopen
 
 
 DEFAULT_BASE = "http://localhost:8000"
+DEFAULT_AGENT_PROFILE = "default"
 DEFAULT_TOOLS = (
     {"name": "terminal", "params": {}},
     {"name": "file_editor", "params": {}},
@@ -82,6 +83,35 @@ def merge_tools(existing: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return list(by_name.values())
 
 
+def iter_agent_profiles(data: dict[str, Any]) -> list[dict[str, Any]]:
+    profiles = data.get("profiles") or data.get("agent_profiles") or data
+    if isinstance(profiles, dict):
+        return [profile for profile in profiles.values() if isinstance(profile, dict)]
+    if isinstance(profiles, list):
+        return [profile for profile in profiles if isinstance(profile, dict)]
+    return []
+
+
+def resolve_agent_profile_id(base: str, key: str, profile_name: str | None) -> str | None:
+    if not profile_name:
+        return None
+
+    wanted = profile_name.strip()
+    if not wanted:
+        return None
+
+    data = request_json("GET", f"{base}/api/agent-profiles", key=key)
+    for profile in iter_agent_profiles(data):
+        profile_id = str(profile.get("id") or profile.get("profile_id") or "")
+        name = str(profile.get("name") or "")
+        if wanted == profile_id or wanted.lower() == name.lower():
+            if not profile_id:
+                raise CanvasError(f"Agent profile {wanted!r} has no id")
+            return profile_id
+
+    raise CanvasError(f"Agent profile not found: {wanted}")
+
+
 def render_supervisor(repo: Path, run_id: str) -> str:
     prompt_path = repo / "agent-canvas" / "prompts" / "supervisor.md"
     if not prompt_path.is_file():
@@ -95,17 +125,15 @@ def render_supervisor(repo: Path, run_id: str) -> str:
     )
 
 
-def build_payload(args: argparse.Namespace, settings: dict[str, Any]) -> dict[str, Any]:
+def build_payload(
+    args: argparse.Namespace,
+    settings: dict[str, Any],
+    agent_profile_id: str | None,
+) -> dict[str, Any]:
     repo = args.repo.resolve()
     conversation_settings = settings.get("conversation_settings") or {}
-    agent_settings = dict(settings.get("agent_settings") or {})
-    agent_settings.pop("schema_version", None)
-    agent_settings.pop("mcp_config", None)
-    agent_settings["tools"] = merge_tools(list(agent_settings.get("tools") or []))
 
-    return {
-        "secrets_encrypted": True,
-        "agent_settings": agent_settings,
+    payload: dict[str, Any] = {
         "workspace": {"kind": "LocalWorkspace", "working_dir": str(repo)},
         "worktree": False,
         "confirmation_policy": {"kind": "NeverConfirm"},
@@ -121,12 +149,25 @@ def build_payload(args: argparse.Namespace, settings: dict[str, Any]) -> dict[st
         },
     }
 
+    if agent_profile_id:
+        payload["agent_profile_id"] = agent_profile_id
+    else:
+        agent_settings = dict(settings.get("agent_settings") or {})
+        agent_settings.pop("schema_version", None)
+        agent_settings.pop("mcp_config", None)
+        agent_settings["tools"] = merge_tools(list(agent_settings.get("tools") or []))
+        payload["secrets_encrypted"] = True
+        payload["agent_settings"] = agent_settings
+
+    return payload
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--base", default=DEFAULT_BASE)
     parser.add_argument("--repo", type=Path, required=True)
     parser.add_argument("--run-id", default="demo-001")
+    parser.add_argument("--agent-profile", default=DEFAULT_AGENT_PROFILE)
     parser.add_argument("--max-iterations", type=int)
     parser.add_argument("--no-run", action="store_true")
     args = parser.parse_args()
@@ -139,15 +180,18 @@ def main() -> int:
         key=key,
         expose_encrypted_secrets=True,
     )
-    payload = build_payload(args, settings)
+    agent_profile_id = resolve_agent_profile_id(base, key, args.agent_profile)
+    payload = build_payload(args, settings, agent_profile_id)
     response = request_json("POST", f"{base}/api/conversations", key=key, payload=payload)
 
     conversation_id = response.get("id")
     summary = {
         "id": conversation_id,
         "status": response.get("execution_status"),
+        "agent_profile": args.agent_profile,
+        "agent_profile_id": agent_profile_id,
         "max_iterations": response.get("max_iterations") or payload["max_iterations"],
-        "tools": [tool["name"] for tool in payload["agent_settings"]["tools"]],
+        "tools": "from agent profile" if agent_profile_id else [tool["name"] for tool in payload["agent_settings"]["tools"]],
         "ui_url": f"{base}/conversations/{conversation_id}" if conversation_id else None,
     }
     print(json.dumps(summary, indent=2, sort_keys=True))
