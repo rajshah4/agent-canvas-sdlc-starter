@@ -33,6 +33,12 @@ Keep the first run simple, but still create real child Agent Canvas conversation
 
 Present the workflow as a minimal path with optional upgrades. Do not turn a first run into the maximal factory by default.
 
+Use this rule of thumb:
+
+- Use the built-in child prompts for the first local Agent Canvas demo and for runs without a PR, CI workflow, tracker credentials, release tag, or production access.
+- Use the actual maintained OpenHands extension when the user has the production surface that extension expects.
+- Do not replace a real extension with a paragraph describing what it should do. The starter prompt is only a fallback and teaching scaffold.
+
 Use `references/upgrade-map.md` when the user asks how to improve the demo, add more factory behavior, connect more systems, introduce delegated agents, add additional gates, or replace starter workcells with maintained skills, plugins, MCP servers, CI workflows, Playwright-style QA, or repo-specific guides.
 
 Use `references/plugin-registry.md` when the user wants to make the factory plugin-first, pick callable OpenHands plugins, or avoid putting deep code-review, QA, release, security, or tracker logic into this starter skill.
@@ -41,7 +47,8 @@ Default stance:
 
 - Run the minimal child-conversation factory first.
 - Identify which step the user wants to improve.
-- Add the smallest maintained skill, capability, tool, or gate that improves that step.
+- Add the smallest maintained skill, plugin, capability, tool, or gate that improves that step.
+- Prefer official OpenHands extensions for production PR review, QA, security remediation, release notes, repo onboarding, and OpenHands automation when their setup requirements are met.
 - Keep each upgrade visible in the artifact contract.
 
 ## Story Intake

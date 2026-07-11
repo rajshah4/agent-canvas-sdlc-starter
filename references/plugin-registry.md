@@ -23,6 +23,20 @@ security slot -> vulnerability-remediation plugin -> security.md + fix PR -> app
 
 The starter factory should not copy the full prompts and scripts from these plugins. It should call them, link to their outputs, and preserve the run summary in `factory_runs/<run-id>/`.
 
+## Local Fallback Vs Real Plugin
+
+Use local starter workcells to teach the shape of the factory or to handle runs without the production surface a plugin expects. Use the real plugin as soon as the needed surface exists.
+
+| Capability | Keep the starter local when... | Use the real plugin when... |
+| --- | --- | --- |
+| Code review | There is only a local diff, a demo repo, or no PR/review credentials. | There is a GitHub PR, workflow, automation runner, or bot/review token setup. |
+| QA | The repo is a small local demo or has no runnable app, dev server, browser, or credentials. | The app can be built or run, and the agent can exercise user-visible, API, or CLI behavior. |
+| Security | The change only needs a human gate or lightweight local scan. | The repo needs repeatable vulnerability scanning and fix PRs. |
+| Release | The run ends at handoff or a lifecycle report. | There is a tag, release workflow, changelog, or GitHub release target. |
+| Repo readiness | The user only needs first-run setup notes. | The team wants repeatable agent-readiness, AGENTS.md, setup scripts, or repo-wide guidance. |
+
+Do not ask a starter prompt to imitate a mature plugin. Instead, run or install the plugin and summarize its native output into the factory artifact.
+
 ## Useful Areas To Extend
 
 These are common extension areas for teams building beyond the starter factory. Treat them as examples of where to connect stronger skills, plugins, MCP servers, CI jobs, or internal tools, not as dependencies bundled with this skill.
@@ -40,16 +54,16 @@ These are common extension areas for teams building beyond the starter factory. 
 
 Authoritative plugin directory: https://github.com/OpenHands/extensions/tree/main/plugins
 
-| Factory slot | Plugin | Good for | Factory output to capture |
+| Factory slot | Plugin | Use when | Factory output to capture |
 | --- | --- | --- | --- |
-| Repo readiness | `onboarding` | Preparing a repo for agent work: AGENTS.md, setup scripts, readiness report, and PR review workflow. | `repo-readiness.md`, setup links, generated AGENTS.md path. |
-| Code review | `pr-review` | Automated PR review with inline comments, prior-review awareness, optional evidence enforcement, optional observability, and optional sub-agent delegation. | `code-review.md`, review URL, inline comment links, verdict. |
-| QA | `qa-changes` | Running the software as a user would, exercising UI/API/CLI behavior, and posting a QA report with evidence. | `qa.md`, commands, screenshots, QA verdict, unable-to-verify notes. |
-| Release | `release-notes` | Generating release notes from tags, PR metadata, commits, labels, and contributors. | `release.md`, release notes URL, changelog path. |
-| Security | `vulnerability-remediation` | Scanning with Trivy, skipping the agent when clean, and creating fix PRs for actionable vulnerabilities. | `security.md`, scan report, fix PR links, exceptions. |
-| Legacy modernization | `cobol-modernization` | Multi-phase COBOL-to-Java migration with build setup, mainframe dependency removal, and test-backed Java migration. | migration plan, test fixtures, Java project path, migration summary. |
-| Migration QA | `migration-scoring` | Scoring completed migrations for coverage, correctness, style, risk, and executive reporting. | `migration_score.json`, `style_score.json`, `final_report.md`. |
-| Intake triage | `issue-duplicate-checker` | Potential duplicate detection during issue intake. Verify current README and inputs before wiring it into a run. | `duplicate-check.md`, matched issue links, triage recommendation. |
+| Repo readiness | `onboarding` | A repo needs repeatable agent setup, AGENTS.md, setup scripts, readiness notes, or review workflow guidance. | `repo-readiness.md`, setup links, generated AGENTS.md path. |
+| Code review | `pr-review` | A real PR or review automation can post inline comments, enforce evidence, trace review runs, or delegate file-level review. | `code-review.md`, review URL, inline comment links, verdict. |
+| QA | `qa-changes` | A real PR or runnable app can be exercised through UI, API, or CLI behavior with evidence. | `qa.md`, commands, screenshots, QA verdict, unable-to-verify notes. |
+| Release | `release-notes` | A tag, release workflow, changelog, or GitHub release target exists. | `release.md`, release notes URL, changelog path. |
+| Security | `vulnerability-remediation` | Trivy or dependency/container scanning should gate work and create fix PRs for actionable vulnerabilities. | `security.md`, scan report, fix PR links, exceptions. |
+| Legacy modernization | `cobol-modernization` | The factory is specialized for COBOL-to-Java migration rather than a general feature slice. | migration plan, test fixtures, Java project path, migration summary. |
+| Migration QA | `migration-scoring` | A completed migration needs coverage, correctness, style, risk, and executive scoring. | `migration_score.json`, `style_score.json`, `final_report.md`. |
+| Intake triage | `issue-duplicate-checker` | Issue intake needs potential duplicate detection. Verify current README and inputs before wiring it into a run. | `duplicate-check.md`, matched issue links, triage recommendation. |
 
 There are also example or specialized plugins in the directory, such as `city-weather`, `magic-test`, and `openhands`. Treat them as demos or inspect them before including them in a software-factory path.
 

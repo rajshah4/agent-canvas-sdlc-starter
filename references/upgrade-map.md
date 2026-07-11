@@ -13,6 +13,7 @@ current minimal step -> proven skill/tool/approach -> new artifact or gate
 - Keep the minimal demo runnable and visible: pasted story or local file, `story.json`, supervisor conversation, child Canvas conversations, workcell artifacts, and `lifecycle-report.md`.
 - Prefer an existing team skill, OpenHands extension, MCP server, test framework, CI workflow, or repo tool before writing a custom long prompt.
 - Put capability-specific prompts and scripts with the capability skill or plugin. The starter skill should define the handoff contract and link to the stronger capability.
+- Do not substitute a paragraph about "what good review/QA/security/release should do" when an actual maintained extension exists and can run in the user's environment.
 - Upgrade one step at a time and keep the new artifact or human gate explicit.
 - If a linked skill or plugin is not installed, record that as setup work instead of pretending the factory can already use it.
 - Pin versions for production runs. Use `main` only for demos or active exploration.
@@ -32,6 +33,21 @@ pasted story or local file
 
 This teaches the shape of a software factory without requiring live tracker credentials, production access, CI, PR permissions, or deployment systems.
 
+## Starter Fallback Vs Official Extension
+
+Use the starter child prompts when the user is learning Agent Canvas, working locally, or missing the production surface an extension expects. Use the official extension when that surface exists.
+
+| Factory step | Starter fallback | Use the actual extension when... | Preferred extension or capability |
+| --- | --- | --- | --- |
+| Repo readiness | Human-readable setup checklist in the lifecycle report. | The user wants a repo prepared for repeatable agent work. | `OpenHands/extensions/plugins/onboarding` plus repo `AGENTS.md` and setup scripts. |
+| Tracker intake | Pasted story, local PRD, exported issue JSON, webhook payload, or MCP result normalized to `story.json`. | The team has a real tracker, connector credentials, or an automation trigger. | Linear, Jira, GitHub, `jira-issue-to-pr`, `linear-triage`, GitHub repo monitor, or MCP/webhook intake. |
+| Implementation | `story-to-pr` child conversation implements the smallest resolved local slice. | The repo has approval to create a branch/PR and local setup is understood. | OpenHands conversation or repo-specific implementation skill using `AGENTS.md`, setup scripts, CI, and GitHub skills. |
+| Code review | `code-review` child conversation writes `code-review.md` from the local diff/artifacts. | There is a real GitHub PR or review automation surface. | `OpenHands/extensions/plugins/pr-review`; use `OpenHands/extensions/skills/code-review` only for direct conversation review. |
+| QA | `qa` child conversation writes `qa.md` from local commands and available evidence. | There is a PR or runnable app where behavior can be exercised. | `OpenHands/extensions/plugins/qa-changes`, `OpenHands/extensions/skills/qa-changes`, Playwright, browser MCP, or team QA skill. |
+| Security | Human gate plus optional local scanner notes. | The repo needs dependency/container vulnerability remediation or policy-backed scanning. | `OpenHands/extensions/plugins/vulnerability-remediation`, CodeQL, secret scanning, dependency audit, SAST/DAST, or org policy tools. |
+| Release | Lifecycle report and handoff notes. | There is a tag, release workflow, changelog, or publish gate. | `OpenHands/extensions/plugins/release-notes`, release-please, semantic-release, GitHub Actions, and deployment approval gates. |
+| Observability | `children.json` and `lifecycle-report.md`. | Runs need auditability across many issues, agents, models, or environments. | Timeline artifacts, metrics, Laminar/OpenTelemetry-style traces, Sentry/Datadog/Grafana links, and status reports. |
+
 ## Skill And Tool Registry
 
 Start with this registry when users ask "what should I use instead of the starter prompt?"
@@ -44,7 +60,7 @@ That registry also includes a "Useful Areas To Extend" note for teams that want 
 | --- | --- | --- |
 | Tracker intake | Jira, Linear, or GitHub connector/MCP; OpenHands MCP docs: https://docs.openhands.dev/overview/model-context-protocol | Fetch issue, comments, labels, links, and attachments into `raw-source.json`, then normalize to `story.json`. |
 | Evented intake | OpenHands event automations: https://docs.openhands.dev/openhands/usage/automations/event-automations | Trigger factory runs from pull request, issue, webhook, or schedule events. |
-| Repository setup and gates | OpenHands repository customization and hooks: https://docs.openhands.dev/openhands/usage/customization/repository | Add setup scripts, repo context, and stop hooks that enforce local checks before completion. |
+| Repository setup and gates | `OpenHands/extensions/plugins/onboarding`; OpenHands repository customization and hooks: https://docs.openhands.dev/openhands/usage/customization/repository | Generate or improve `AGENTS.md`, setup scripts, repo readiness notes, and stop hooks that enforce local checks before completion. |
 | Code review | OpenHands Automated Code Review: https://docs.openhands.dev/openhands/usage/use-cases/code-review | Replace the starter `code-review` workcell with `/codereview`, the `pr-review` plugin, or an org automation. |
 | Code review plugin | `OpenHands/extensions/plugins/pr-review`: https://github.com/OpenHands/extensions/tree/main/plugins/pr-review | Run as GitHub Action or OpenHands Automation; produce PR inline comments and a verdict. |
 | Code review skill | `OpenHands/extensions/skills/code-review`: https://github.com/OpenHands/extensions/tree/main/skills/code-review | Use directly in a conversation with `/add-skill` and `/codereview`, or as part of the PR review plugin. |
@@ -56,7 +72,8 @@ That registry also includes a "Useful Areas To Extend" note for teams that want 
 | Browser MCP | Playwright MCP: https://playwright.dev/docs/getting-started-mcp | Connect a browser automation MCP server for persistent exploratory UI testing. |
 | E2E evidence | Playwright Trace Viewer: https://playwright.dev/docs/trace-viewer-intro | Attach `trace.zip`, screenshots, videos, and HTML reports to QA artifacts. |
 | CI and PR operations | GitHub Actions plus available GitHub skills or plugins | Watch checks, fix failing CI, request review, and link the PR back to the factory run. |
-| Security | Existing org security skills, CodeQL, secret scanning, dependency audit, SAST/DAST tools | Add security findings and policy gates before merge or deploy. |
+| Security | `OpenHands/extensions/plugins/vulnerability-remediation`, CodeQL, secret scanning, dependency audit, SAST/DAST tools | Scan first, remediate when actionable, and add security findings and policy gates before merge or deploy. |
+| Release notes | `OpenHands/extensions/plugins/release-notes`, release-please, semantic-release, or org release workflow | Generate or validate release notes from tags, PR metadata, commits, labels, and contributors. |
 | Observability | Run timeline, child conversation IDs, OpenTelemetry/Laminar-style traces, cost and token metrics | Make the factory inspectable, debuggable, and auditable. |
 
 Treat this registry as editable. If a team has a stronger internal Playwright skill, code review skill, security skill, or release skill, point to that first and keep the starter prompt as the fallback.
@@ -175,7 +192,8 @@ Upgrade toward:
 
 Wire into the factory:
 
-- Replace the starter `code-review` child prompt with a child that invokes `/codereview` or runs the PR review plugin.
+- Keep the starter `code-review` child prompt only for local demo runs or local diffs without a PR.
+- Replace it with a child that invokes `/codereview` or runs the `pr-review` plugin when a real PR/review surface exists.
 - Pass the PR URL or diff, `story.json`, acceptance criteria, and previous findings.
 - Store the raw review summary even when inline comments are posted to GitHub.
 - Record whether findings are blocking, informational, or require a human owner.
@@ -201,7 +219,8 @@ Upgrade toward:
 
 Wire into the factory:
 
-- Replace the starter `qa` child prompt with `/qa-changes` or a Playwright-driven QA workcell.
+- Keep the starter `qa` child prompt only for local demo runs or small local changes.
+- Replace it with `/qa-changes`, the `qa-changes` plugin, or a Playwright-driven QA workcell when there is a runnable app, PR, or reviewable behavior.
 - Pass `story.json`, PR URL or diff, dev server instructions, test credentials policy, and priority scenarios.
 - Produce evidence from real execution: commands, HTTP responses, screenshots, traces, videos, or generated tests.
 - Report missing environment, browsers, credentials, or services honestly as `partial`, not `pass`.
@@ -222,7 +241,8 @@ Upgrade toward:
 
 - CI monitoring and failing-check repair.
 - Review request, merge readiness, and CODEOWNERS routing.
-- Changelog, release notes, customer communication, feature flag, and rollback plans.
+- The OpenHands `release-notes` plugin when a release tag or GitHub release workflow exists.
+- Changelog, customer communication, feature flag, and rollback plans.
 - Deployment workflows with explicit human approval.
 
 Wire into the factory:
@@ -246,6 +266,7 @@ Use when the work touches auth, data, secrets, infrastructure, dependencies, ext
 Upgrade toward:
 
 - Security review skill or threat-modeling skill.
+- The OpenHands `vulnerability-remediation` plugin when dependency, container, or package vulnerability scanning should create fix PRs.
 - CodeQL, secret scanning, dependency audit, license policy, SBOM, SAST, DAST, or container scanning.
 - Org-specific policy checks for data classification, privacy, and access control.
 
@@ -299,7 +320,7 @@ Upgrade path:
 
 ```text
 code-review child prompt
--> OpenHands code-review skill or pr-review plugin
+-> OpenHands pr-review plugin or code-review skill
 -> PR inline comments, verdict, review URL, code-review.md
 ```
 
@@ -317,7 +338,7 @@ Upgrade path:
 
 ```text
 qa child prompt
--> OpenHands qa-changes skill or Playwright skill/MCP
+-> OpenHands qa-changes plugin/skill or Playwright skill/MCP
 -> commands, screenshots, traces, videos, acceptance matrix, qa.md
 ```
 
