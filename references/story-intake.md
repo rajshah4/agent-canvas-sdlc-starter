@@ -1,36 +1,92 @@
 # Story Intake
 
-## Purpose
+Use this reference whenever work enters the factory from pasted text, a local file,
+Jira, Linear, GitHub, MCP, webhook, or polling.
 
-Normalize every incoming request into `story.json` before Agent Canvas orchestration begins. The tracker is the front door; `story.json` is the handoff.
+The rule is simple: the source can vary, but the supervisor should receive one stable
+handoff file: `story.json`.
+
+## First Run
+
+For a first-time user, start with pasted text or a local markdown file. Do not require
+webhooks, tracker credentials, or status write-back before the basic factory loop works.
+
+```text
+pasted story or local file -> story.json -> supervisor
+```
 
 ## Intake Modes
 
 Manual starter:
 
-- Use when the user is learning the workflow or running a demo.
-- Accept pasted text, a local markdown file, or a PRD export.
-- Prefer this for the first successful run.
+- Use for demos and first successful runs.
+- Accept pasted text, a local markdown file, or a PRD snippet.
 
-MCP pull:
+MCP or connector pull:
 
-- Use when the user gives a Jira, Linear, GitHub, Confluence, Notion, or similar URL and the matching connector is available.
-- Fetch title, body, comments, labels, linked docs, acceptance criteria, repo hints, assignee, and status.
-- Write back status only when the user asks or the workflow explicitly includes a return path.
+- Use when the user gives a Jira, Linear, GitHub, Confluence, Notion, or similar URL.
+- Fetch title, body, comments, labels, links, acceptance criteria, repo hints, assignee, and status when available.
+- Write status back only when the user asks or the workflow explicitly includes a return path.
 
 Webhook or polling payload:
 
 - Use when an automation starts the workflow.
-- Treat the payload as raw input, not the story contract.
-- Store the raw payload path and normalize the useful fields into `story.json`.
+- Treat the payload as raw input, not as the story contract.
+- Store the raw payload when useful, then normalize the useful fields into `story.json`.
 
-## MCP Versus Webhook
+## Tracker Field Mapping
 
-- MCP and connectors are for reading and writing context.
-- Webhooks are for triggering a run when an external event happens.
-- Polling is the fallback trigger when the deployment cannot receive public webhooks.
+Keep tracker adapters outside the core workflow. Their job is to produce `story.json`
+and optionally write back a status comment. The supervisor and workcells should not
+depend on Jira, Linear, GitHub, or any one payload shape.
 
-Do not require webhook setup for a first run. First prove that `story.json` drives the workflow.
+GitHub:
+
+- issue or PR title -> `request.title`
+- body -> `request.body`
+- labels -> `request.labels`
+- comments -> `request.comments`
+- repository -> `repo.url`
+- issue or PR URL -> `source.url`
+
+Jira:
+
+- key -> `source.id`
+- summary -> `request.title`
+- description -> `request.body`
+- issue type, labels, priority -> `request.labels` or `request.priority`
+- comments -> `request.comments`
+- linked repository field or custom field -> `repo.url`
+
+Linear:
+
+- identifier or issue id -> `source.id`
+- title -> `request.title`
+- description -> `request.body`
+- labels -> `request.labels`
+- priority -> `request.priority`
+- comments -> `request.comments`
+
+Treat custom tracker fields as hints unless the user documents them.
+
+## Webhook Or Polling
+
+Use manual start for the first run.
+
+Use webhooks when the OpenHands or Agent Canvas automation endpoint is publicly
+reachable by the source system. Verify webhook signatures when the source supports
+signatures, and do not print webhook secrets.
+
+Use polling when:
+
+- the deployment is local or private
+- the source system cannot send webhooks
+- the team wants a simpler first integration
+- webhook signing is not configured yet
+
+Polling adapters should track processed items, skip stories without an explicit trigger
+marker or status, and avoid loops where the agent's own status comment retriggers the
+workflow.
 
 ## Normalized Fields
 
@@ -54,22 +110,13 @@ Recommended:
 - `decisions.known`
 - `decisions.needed`
 
-## Missing Data Rules
+## Missing Data And Disagreement
 
 Infer small formatting details, but do not invent product decisions.
 
-Ask for human input when missing information changes:
-
-- scope
-- acceptance criteria
-- customer-visible behavior
-- API behavior
-- data model or migration
-- security or auth
-- dependency policy
-- rollout and merge decision
-
-## Disagreement Handling
+Ask for human input when missing information changes scope, acceptance criteria,
+customer-visible behavior, API behavior, data model, security, dependencies, rollout,
+merge, or deployment.
 
 When stakeholders disagree:
 
@@ -88,3 +135,16 @@ Example:
   "needed_from": "product owner"
 }
 ```
+
+## Return Path
+
+When requested and authorized, write back:
+
+- intake summary
+- lifecycle report link
+- child conversation links
+- branch or PR link
+- review and QA status
+- human gates still required
+
+Do not write back noisy intermediate logs unless the team asks for them.

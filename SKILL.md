@@ -39,9 +39,7 @@ Use this rule of thumb:
 - Use the actual maintained OpenHands extension when the user has the production surface that extension expects.
 - Do not replace a real extension with a paragraph describing what it should do. The starter prompt is only a fallback and teaching scaffold.
 
-Use `references/upgrade-map.md` when the user asks how to improve the demo, add more factory behavior, connect more systems, introduce delegated agents, add additional gates, or replace starter workcells with maintained skills, plugins, MCP servers, CI workflows, Playwright-style QA, or repo-specific guides.
-
-Use `references/plugin-registry.md` when the user wants to make the factory plugin-first, pick callable OpenHands plugins, or avoid putting deep code-review, QA, release, security, or tracker logic into this starter skill.
+Use `references/upgrade-map.md` when the user asks how to improve the demo, add more factory behavior, introduce delegated agents, add gates, find OpenHands extension paths, or replace starter workcells with maintained skills, plugins, MCP servers, CI workflows, Playwright-style QA, or repo-specific guides.
 
 Default stance:
 
@@ -55,7 +53,7 @@ Default stance:
 
 Always make intake explicit. Do not let downstream prompts depend on tracker-specific fields.
 
-Use `references/story-intake.md` when the user has a Jira, Linear, GitHub, PRD, pasted story, webhook payload, or polling result.
+Use `references/story-intake.md` when the user has a Jira, Linear, GitHub, PRD, pasted story, webhook payload, polling result, or tracker field-mapping question.
 
 Use this boundary:
 
@@ -99,12 +97,6 @@ The supervisor conversation coordinates. Child Canvas conversations do focused i
 The parent conversation must have terminal and file tools so it can run the repo-local launcher. A server may be reachable while the selected agent profile lacks the tools needed to scaffold files, start child conversations, or write artifacts.
 
 The repository path must also be readable by Agent Canvas. On macOS, prefer `/private/tmp` or `~/Code` for first runs instead of protected folders such as `Documents` or `Desktop`.
-
-## Tracker Integrations
-
-Use `references/tracker-integrations.md` for GitHub, Jira, Linear, and local-file mapping.
-
-Use `references/webhook-or-polling.md` when the user wants automatic triggering. If the Agent Canvas or OpenHands deployment cannot receive public webhooks, recommend polling or manual start first.
 
 ## Human Gates
 

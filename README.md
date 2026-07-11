@@ -1,18 +1,30 @@
 # Agent Canvas SDLC Starter
 
-A beginner-friendly Agent Canvas skill for learning how an automation factory works.
-It turns a story into a small, inspectable workflow with a supervisor and real child
-Agent Canvas conversations.
+Let's build a software automation factory that starts simple, then grows as you add
+your own integrations, gates, and team practices.
+
+The core idea is small: use Agent Canvas to run a supervisor conversation that starts
+real child conversations for implementation, review, and QA. You can watch the work
+move from one step to the next instead of treating the agent like one giant black box.
 
 ```text
 story -> story.json -> supervisor -> implementation child -> review child -> QA child -> lifecycle report
 ```
 
-This is intentionally a starter. The built-in workcells are local teaching versions.
-For production PR review, QA, security, release notes, and repo readiness, use the
-official OpenHands extensions listed in `references/upgrade-map.md`.
+A "story" is just the work request. It can be a pasted feature request, a bug report,
+a PRD snippet, a Jira issue, a Linear issue, a GitHub issue, or a webhook payload.
+For the first run, use something small and concrete.
 
-## First Run
+## How It Works
+
+The software factory shape is based on `references/agent-canvas-workflow.md`.
+Start there when you want to understand and improve how the supervisor, child conversations,
+artifacts, sequencing, or workcell prompts fit together.
+
+This README is the human quickstart. `SKILL.md` is what the agent reads. The
+workflow reference is the shared factory pattern behind both.
+
+## Quick Start
 
 Prerequisites:
 
@@ -24,16 +36,17 @@ Prerequisites:
 Example prompt:
 
 > Use the Agent Canvas SDLC starter to run the factory on `/private/tmp/my-repo`
-> for this story: "Add a saved filter to the projects page so users return to the
-> same view later."
+> for this feature request: "Add a saved filter to the projects page so users return
+> to the same view later."
 
 The agent will:
 
-1. Normalize the story into `factory_runs/<run-id>/story.json`.
-2. Scaffold the Agent Canvas prompts and launcher into the target repo.
+1. Turn the story into the shared story file at `factory_runs/<run-id>/story.json`.
+2. Add the starter Agent Canvas files to the target repo so the supervisor can run
+   the factory there.
 3. Start a supervisor conversation.
 4. Have the supervisor create child conversations for implementation, review, and QA.
-5. Write a lifecycle report with links, statuses, evidence, and human gates.
+5. End with a report summarizing links, statuses, evidence, and human gates.
 
 ## What To Look For
 
@@ -41,26 +54,29 @@ Every run writes artifacts under `factory_runs/<run-id>/`:
 
 | Artifact | Purpose |
 | --- | --- |
-| `story.json` | Stable handoff from intake into the factory. |
-| `intake.md` | Human-readable story summary and decisions. |
+| `story.json` | The shared source of truth for the run. |
+| `intake.md` | The readable story summary and open decisions. |
 | `children.json` | Child conversation IDs, links, artifact paths, and statuses. |
-| `story-to-pr.md` | Implementation summary, changed files, tests, and gates. |
-| `code-review.md` | Findings, risks, and review status. |
+| `story-to-pr.md` | What changed, what tests ran, and what still needs a human. |
+| `code-review.md` | Review findings, risks, and review status. |
 | `qa.md` | Commands, evidence, acceptance status, and residual risk. |
-| `lifecycle-report.md` | Final run summary and next operator action. |
+| `lifecycle-report.md` | The final run summary and next operator action. |
 
-## Common Next Steps
+## Your Next Steps
+
+You do not need the full factory on day one. Start with the local starter loop, then
+upgrade one step at a time:
 
 - Connect intake to Jira, Linear, GitHub Issues, MCP, webhook, or polling sources.
 - Replace the starter review child with OpenHands `pr-review` when there is a real PR.
 - Replace the starter QA child with `qa-changes`, Playwright, or browser automation.
-- Add security, release, repo-readiness, and observability extensions one step at a time.
+- Add security, release, repo-readiness, and observability extensions when the workflow needs them.
 
 See:
 
 - `SKILL.md` for the agent-facing workflow.
-- `references/upgrade-map.md` for the beginner upgrade path.
-- `references/plugin-registry.md` for the short official OpenHands extension map.
+- `references/story-intake.md` for tracker, webhook, polling, and story normalization.
+- `references/upgrade-map.md` for the beginner upgrade path and OpenHands extension paths.
 
 ## Safety
 
