@@ -179,10 +179,10 @@ def _decisions(text: str, criteria: list[str]) -> dict[str, list[Any]]:
             needed,
             "Should this story stay local-only for the first slice, or include cross-device/backend persistence?",
             options=[
-                "Local-only first slice with no backend persistence",
+                "Local-only first slice with browser-local persistence when the story requires returning later",
                 "Cross-device sync with API and data model work",
             ],
-            impact="Changes scope from a starter UI/local behavior slice to backend API, data model, persistence, and broader QA work.",
+            impact="Changes scope from a starter UI/browser-local slice to backend API, data model, persistence, and broader QA work.",
             needed_from="product owner",
         )
 

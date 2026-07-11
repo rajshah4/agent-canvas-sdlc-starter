@@ -22,6 +22,8 @@ Do not invent dates. If a date or timestamp is needed, run `date -u` and use tha
 6. Run focused validation first.
 7. Prepare a branch, diff, or PR summary according to available credentials and user approval.
 
+When a story says data should be available "later", "after reload", or in a "later browser session", do not satisfy that with module-level in-memory state. Use the existing app persistence pattern when one exists, or use a small browser-local storage adapter for the starter slice. If the repo has no browser runtime, keep the storage boundary injectable so tests can verify persistence behavior without requiring a real browser.
+
 ## Human Control
 
 Do not merge, deploy, approve your own work, bypass branch protection, or access secrets unless explicitly authorized.

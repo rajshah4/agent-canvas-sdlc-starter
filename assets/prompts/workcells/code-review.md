@@ -24,6 +24,8 @@ Review the PR, branch, or local diff produced by the implementation workcell.
 
 Do not focus on style unless it hides a real risk.
 
+For persistence stories, check the requested lifetime. If the story says the value should survive reloads, later sessions, or browser restarts, module-level in-memory state is not sufficient unless the story explicitly limits the feature to process lifetime only.
+
 ## Output
 
 Write `factory_runs/{{run_id}}/code-review.md` with:

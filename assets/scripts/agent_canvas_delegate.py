@@ -8,6 +8,7 @@ import os
 import time
 from pathlib import Path
 from typing import Any
+from urllib.parse import quote
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -118,11 +119,41 @@ def unique_tools(tools: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return list(merged.values())
 
 
-def build_agent_settings(settings_response: dict[str, Any]) -> dict[str, Any]:
+def active_llm_profile(
+    base: str,
+    key: str,
+    settings_response: dict[str, Any],
+) -> dict[str, Any] | None:
+    profile_name = settings_response.get("active_profile")
+    if not isinstance(profile_name, str) or not profile_name.strip():
+        return None
+
+    profile = http_json(
+        "GET",
+        f"{base.rstrip('/')}/api/profiles/{quote(profile_name, safe='')}",
+        key=key,
+        expose_encrypted_secrets=True,
+    )
+    config = profile.get("config")
+    if not isinstance(config, dict) or not config.get("model"):
+        return None
+
+    llm = dict(config)
+    llm.setdefault("stream", True)
+    llm["usage_id"] = f"profile:{profile_name}"
+    return llm
+
+
+def build_agent_settings(
+    settings_response: dict[str, Any],
+    llm_profile: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     agent_settings = dict(settings_response.get("agent_settings") or {})
     agent_settings.pop("schema_version", None)
     agent_settings.pop("mcp_config", None)
     agent_settings.pop("agent", None)
+    if llm_profile:
+        agent_settings["llm"] = llm_profile
     agent_settings["tools"] = unique_tools(
         [*list(agent_settings.get("tools") or []), *DEFAULT_TOOLS]
     )
@@ -135,12 +166,13 @@ def build_conversation_payload(
     prompt: str,
     workspace: Path,
     max_iterations: int | None,
+    llm_profile: dict[str, Any] | None = None,
     run: bool = True,
 ) -> dict[str, Any]:
     conversation_settings = settings_response.get("conversation_settings") or {}
     return {
         "secrets_encrypted": True,
-        "agent_settings": build_agent_settings(settings_response),
+        "agent_settings": build_agent_settings(settings_response, llm_profile),
         "workspace": {"kind": "LocalWorkspace", "working_dir": str(workspace.resolve())},
         "confirmation_policy": {"kind": "NeverConfirm"},
         "max_iterations": max_iterations
@@ -167,11 +199,13 @@ def create_conversation(
     max_iterations: int | None,
     run: bool = True,
 ) -> dict[str, Any]:
+    llm_profile = active_llm_profile(base, key, settings_response)
     payload = build_conversation_payload(
         settings_response=settings_response,
         prompt=prompt,
         workspace=workspace,
         max_iterations=max_iterations,
+        llm_profile=llm_profile,
         run=run,
     )
     return http_json("POST", f"{base}/api/conversations", key=key, payload=payload)

@@ -67,7 +67,7 @@ Use `scripts/check_agent_canvas_ready.py` to check the server advertises these t
 
 Use `scripts/start_agent_canvas_sdlc.py` to bootstrap the supervisor conversation with the current regular OpenHands settings and the server's configured max-iteration setting when starting from outside Agent Canvas.
 
-Leave profile selection blank for the starter unless the user explicitly chooses a profile. The launcher inherits `agent_settings.llm.model` from regular OpenHands settings and adds the required tools. If Agent Canvas displays an unexpected model, inspect the saved OpenHands model setting rather than assuming the profile label tells the whole story.
+Leave Agent Canvas agent profile selection blank for the starter unless the user explicitly chooses an agent profile. The launcher uses the active LLM profile when one is selected, falls back to `agent_settings.llm.model`, and adds the required tools. If Agent Canvas displays an unexpected model, inspect both the LLM profile label and the raw saved model setting.
 
 Inside the supervisor run, run:
 

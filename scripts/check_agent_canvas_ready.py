@@ -9,6 +9,7 @@ import os
 import urllib.error
 import urllib.request
 from pathlib import Path
+from urllib.parse import quote
 
 
 REQUIRED_FILES = [
@@ -78,12 +79,36 @@ def settings_message(base: str) -> str:
 
     agent_settings = data.get("agent_settings") or {}
     llm = agent_settings.get("llm") or {}
-    model = llm.get("model") if isinstance(llm, dict) else None
     profile = data.get("active_profile") or "(none)"
+    raw_model = llm.get("model") if isinstance(llm, dict) else None
+    resolved_model = raw_model
+    source = "raw OpenHands model setting"
+
+    if isinstance(profile, str) and profile and profile != "(none)":
+        profile_url = base.rstrip("/") + "/api/profiles/" + quote(profile, safe="")
+        profile_request = urllib.request.Request(
+            profile_url,
+            headers={
+                "Accept": "application/json",
+                "X-Session-API-Key": key,
+                "X-Expose-Secrets": "encrypted",
+            },
+        )
+        try:
+            with urllib.request.urlopen(profile_request, timeout=5) as response:
+                profile_data = json.loads(response.read().decode("utf-8"))
+            config = profile_data.get("config") or {}
+            if isinstance(config, dict) and config.get("model"):
+                resolved_model = config["model"]
+                source = f"active LLM profile {profile}"
+        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError):
+            pass
+
     return (
-        "INFO profile selection stays blank for this starter; "
-        f"regular OpenHands model setting: {model or '(unknown)'}; "
-        f"active profile label: {profile}"
+        "INFO Agent Canvas agent profile stays blank for this starter; "
+        f"resolved LLM model: {resolved_model or '(unknown)'} from {source}; "
+        f"raw model setting: {raw_model or '(unknown)'}; "
+        f"active LLM profile label: {profile}"
     )
 
 

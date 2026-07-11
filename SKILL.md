@@ -11,7 +11,7 @@ Act as the software factory supervisor. Normalize the story, create focused chil
 
 If you are already running inside Agent Canvas with terminal and file tools, perform the supervisor workflow directly. If you are outside Agent Canvas, use `scripts/start_agent_canvas_sdlc.py` to bootstrap a tool-enabled Agent Canvas conversation that follows the same supervisor instructions.
 
-Leave Agent Canvas profile selection blank unless the user explicitly asks for a specific profile. Let the active regular OpenHands model settings apply, then merge in the required terminal, file, and task-tracking tools. If the UI shows an unexpected model, tell the user to check the saved OpenHands model setting; blank profile selection means "use the current OpenHands default," not "choose a neutral model."
+Leave Agent Canvas agent profile selection blank unless the user explicitly asks for a specific agent profile. Use the active OpenHands LLM profile when one is selected, then merge in the required terminal, file, and task-tracking tools. If the UI shows an unexpected model, distinguish the agent profile picker from the LLM profile/model setting.
 
 The minimal factory pattern is:
 
@@ -102,7 +102,7 @@ You are the supervisor when the skill is running inside Agent Canvas with the ne
 
 The active supervisor agent must have terminal and file tools so it can run the repo-local child-conversation helper. A server may be reachable while the selected agent profile lacks the tools needed to scaffold files, start child conversations, or write artifacts.
 
-The starter should not hard-code a profile such as `default`. Use the regular OpenHands settings that Agent Canvas already has saved, and surface the inherited model if a user asks why a model was selected.
+The starter should not hard-code an Agent Canvas agent profile such as `default`. Use the active LLM profile plus the regular OpenHands settings that Agent Canvas already has saved, and surface the resolved model if a user asks why a model was selected.
 
 The repository path must also be readable by Agent Canvas. On macOS, prefer `/private/tmp` or `~/Code` for first runs instead of protected folders such as `Documents` or `Desktop`.
 

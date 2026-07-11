@@ -8,6 +8,7 @@ import json
 import os
 from pathlib import Path
 from typing import Any
+from urllib.parse import quote
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -86,10 +87,35 @@ def settings_summary(settings: dict[str, Any]) -> dict[str, Any]:
     agent_settings = settings.get("agent_settings") or {}
     llm = agent_settings.get("llm") or {}
     return {
-        "profile_selection": "blank",
+        "agent_profile_selection": "blank",
         "active_profile": settings.get("active_profile"),
-        "inherited_model": llm.get("model") if isinstance(llm, dict) else None,
+        "raw_model": llm.get("model") if isinstance(llm, dict) else None,
     }
+
+
+def active_llm_profile(
+    base: str,
+    key: str,
+    settings: dict[str, Any],
+) -> dict[str, Any] | None:
+    profile_name = settings.get("active_profile")
+    if not isinstance(profile_name, str) or not profile_name.strip():
+        return None
+
+    profile = request_json(
+        "GET",
+        f"{base}/api/profiles/{quote(profile_name, safe='')}",
+        key=key,
+        expose_encrypted_secrets=True,
+    )
+    config = profile.get("config")
+    if not isinstance(config, dict) or not config.get("model"):
+        return None
+
+    llm = dict(config)
+    llm.setdefault("stream", True)
+    llm["usage_id"] = f"profile:{profile_name}"
+    return llm
 
 
 def render_supervisor(repo: Path, run_id: str) -> str:
@@ -105,13 +131,19 @@ def render_supervisor(repo: Path, run_id: str) -> str:
     )
 
 
-def build_payload(args: argparse.Namespace, settings: dict[str, Any]) -> dict[str, Any]:
+def build_payload(
+    args: argparse.Namespace,
+    settings: dict[str, Any],
+    llm_profile: dict[str, Any] | None,
+) -> dict[str, Any]:
     repo = args.repo.resolve()
     conversation_settings = settings.get("conversation_settings") or {}
     agent_settings = dict(settings.get("agent_settings") or {})
     agent_settings.pop("schema_version", None)
     agent_settings.pop("mcp_config", None)
     agent_settings.pop("agent", None)
+    if llm_profile:
+        agent_settings["llm"] = llm_profile
     agent_settings["tools"] = merge_tools(list(agent_settings.get("tools") or []))
 
     return {
@@ -150,7 +182,8 @@ def main() -> int:
         key=key,
         expose_encrypted_secrets=True,
     )
-    payload = build_payload(args, settings)
+    llm_profile = active_llm_profile(base, key, settings)
+    payload = build_payload(args, settings, llm_profile)
     response = request_json("POST", f"{base}/api/conversations", key=key, payload=payload)
 
     conversation_id = response.get("id")
@@ -158,7 +191,15 @@ def main() -> int:
         "id": conversation_id,
         "status": response.get("execution_status"),
         "max_iterations": response.get("max_iterations") or payload["max_iterations"],
-        "settings": settings_summary(settings),
+        "settings": {
+            **settings_summary(settings),
+            "resolved_model": payload["agent_settings"].get("llm", {}).get("model"),
+            "llm_source": (
+                f"active_profile:{settings.get('active_profile')}"
+                if llm_profile
+                else "agent_settings.llm"
+            ),
+        },
         "tools": [tool["name"] for tool in payload["agent_settings"]["tools"]],
         "ui_url": f"{base}/conversations/{conversation_id}" if conversation_id else None,
     }
