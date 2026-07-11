@@ -17,7 +17,6 @@ DEFAULT_BASE_CANDIDATES = (
     "http://127.0.0.1:18000",
 )
 DEFAULT_UI_BASE = "http://localhost:8000"
-DEFAULT_AGENT_PROFILE = "default"
 TERMINAL_STATUSES = {"finished", "idle", "error", "stuck", "stopped"}
 DEFAULT_TOOLS = (
     {"name": "terminal", "params": {}},
@@ -123,39 +122,11 @@ def build_agent_settings(settings_response: dict[str, Any]) -> dict[str, Any]:
     agent_settings = dict(settings_response.get("agent_settings") or {})
     agent_settings.pop("schema_version", None)
     agent_settings.pop("mcp_config", None)
+    agent_settings.pop("agent", None)
     agent_settings["tools"] = unique_tools(
         [*list(agent_settings.get("tools") or []), *DEFAULT_TOOLS]
     )
     return agent_settings
-
-
-def iter_agent_profiles(data: dict[str, Any]) -> list[dict[str, Any]]:
-    profiles = data.get("profiles") or data.get("agent_profiles") or data
-    if isinstance(profiles, dict):
-        return [profile for profile in profiles.values() if isinstance(profile, dict)]
-    if isinstance(profiles, list):
-        return [profile for profile in profiles if isinstance(profile, dict)]
-    return []
-
-
-def resolve_agent_profile_id(base: str, key: str, profile_name: str | None) -> str | None:
-    if not profile_name:
-        return None
-
-    wanted = profile_name.strip()
-    if not wanted:
-        return None
-
-    data = http_json("GET", f"{base}/api/agent-profiles", key=key)
-    for profile in iter_agent_profiles(data):
-        profile_id = str(profile.get("id") or profile.get("profile_id") or "")
-        name = str(profile.get("name") or "")
-        if wanted == profile_id or wanted.lower() == name.lower():
-            if not profile_id:
-                raise CanvasAPIError(f"Agent profile {wanted!r} has no id")
-            return profile_id
-
-    raise CanvasAPIError(f"Agent profile not found: {wanted}")
 
 
 def build_conversation_payload(
@@ -164,11 +135,12 @@ def build_conversation_payload(
     prompt: str,
     workspace: Path,
     max_iterations: int | None,
-    agent_profile_id: str | None,
     run: bool = True,
 ) -> dict[str, Any]:
     conversation_settings = settings_response.get("conversation_settings") or {}
-    payload: dict[str, Any] = {
+    return {
+        "secrets_encrypted": True,
+        "agent_settings": build_agent_settings(settings_response),
         "workspace": {"kind": "LocalWorkspace", "working_dir": str(workspace.resolve())},
         "confirmation_policy": {"kind": "NeverConfirm"},
         "max_iterations": max_iterations
@@ -184,14 +156,6 @@ def build_conversation_payload(
         },
     }
 
-    if agent_profile_id:
-        payload["agent_profile_id"] = agent_profile_id
-    else:
-        payload["secrets_encrypted"] = True
-        payload["agent_settings"] = build_agent_settings(settings_response)
-
-    return payload
-
 
 def create_conversation(
     *,
@@ -201,16 +165,13 @@ def create_conversation(
     prompt: str,
     workspace: Path,
     max_iterations: int | None,
-    agent_profile: str | None = DEFAULT_AGENT_PROFILE,
     run: bool = True,
 ) -> dict[str, Any]:
-    agent_profile_id = resolve_agent_profile_id(base, key, agent_profile)
     payload = build_conversation_payload(
         settings_response=settings_response,
         prompt=prompt,
         workspace=workspace,
         max_iterations=max_iterations,
-        agent_profile_id=agent_profile_id,
         run=run,
     )
     return http_json("POST", f"{base}/api/conversations", key=key, payload=payload)

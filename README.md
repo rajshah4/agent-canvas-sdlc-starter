@@ -30,7 +30,6 @@ workflow reference is the shared factory pattern behind both.
 Prerequisites:
 
 - Local Agent Canvas/OpenHands Agent Server at `http://localhost:8000`.
-- An Agent Canvas agent profile named `default`.
 - Python 3.
 - A target repo that Agent Canvas can read. On macOS, prefer `/private/tmp` or
   `~/Code` for first runs.

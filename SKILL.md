@@ -11,7 +11,7 @@ Act as the software factory supervisor. Normalize the story, create focused chil
 
 If you are already running inside Agent Canvas with terminal and file tools, perform the supervisor workflow directly. If you are outside Agent Canvas, use `scripts/start_agent_canvas_sdlc.py` to bootstrap a tool-enabled Agent Canvas conversation that follows the same supervisor instructions.
 
-Use the Agent Canvas agent profile named `default` for the supervisor and child conversations unless the user explicitly asks for a different profile.
+Leave Agent Canvas profile selection blank unless the user explicitly asks for a specific profile. Let the active Agent Canvas default profile and regular OpenHands model settings apply, then merge in the required terminal, file, and task-tracking tools.
 
 The minimal factory pattern is:
 
@@ -139,7 +139,7 @@ python3 scripts/check_agent_canvas_ready.py --base http://localhost:8000 --repo 
 Bootstrap the factory supervisor from outside Agent Canvas:
 
 ```bash
-python3 scripts/start_agent_canvas_sdlc.py --base http://localhost:8000 --repo /path/to/repo --run-id demo-001 --agent-profile default
+python3 scripts/start_agent_canvas_sdlc.py --base http://localhost:8000 --repo /path/to/repo --run-id demo-001
 ```
 
 ## Bundled Assets

@@ -65,12 +65,12 @@ For Agent Server `1.31.0`, API-created supervisor and child conversations can us
 
 Use `scripts/check_agent_canvas_ready.py` to check the server advertises these tools before a live run.
 
-Use `scripts/start_agent_canvas_sdlc.py --agent-profile default` to bootstrap the supervisor conversation with the default Agent Canvas agent profile and the server's configured max-iteration setting when starting from outside Agent Canvas.
+Use `scripts/start_agent_canvas_sdlc.py` to bootstrap the supervisor conversation with the current regular OpenHands settings and the server's configured max-iteration setting when starting from outside Agent Canvas.
 
 Inside the supervisor run, run:
 
 ```bash
-python3 agent-canvas/scripts/run_agent_canvas_factory.py --base http://localhost:8000 --repo <repo> --run-id <run-id> --agent-profile default
+python3 agent-canvas/scripts/run_agent_canvas_factory.py --base http://localhost:8000 --repo <repo> --run-id <run-id>
 ```
 
 ## Child Conversation Rules

@@ -32,12 +32,12 @@ Read `factory_runs/{{run_id}}/story.json` first. If it does not exist, normalize
 Use this command from `{{repo_path}}`:
 
 ```bash
-python3 agent-canvas/scripts/run_agent_canvas_factory.py --base http://localhost:8000 --repo "{{repo_path}}" --run-id "{{run_id}}" --agent-profile default
+python3 agent-canvas/scripts/run_agent_canvas_factory.py --base http://localhost:8000 --repo "{{repo_path}}" --run-id "{{run_id}}"
 ```
 
 The script creates separate Agent Canvas conversations through the local REST API, waits for each child, writes `children.json`, writes child final-response files, and creates the lifecycle report. Use it as your helper for the visible child-conversation pattern.
 
-Use the `default` Agent Canvas agent profile unless the user explicitly asks for a different profile.
+Leave Agent Canvas profile selection blank unless the user explicitly asks for a specific profile. Use the current regular OpenHands model settings and the required terminal, file, and task-tracking tools.
 
 Run the helper once per run ID. If you need to inspect progress, read `factory_runs/{{run_id}}/children.json` and the child artifacts. Do not rerun the helper while a child conversation is already active for the same workcell.
 

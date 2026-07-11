@@ -194,7 +194,6 @@ def start_child(
         prompt=child_prompt(args, cell),
         workspace=args.repo,
         max_iterations=args.child_max_iterations,
-        agent_profile=args.agent_profile,
         run=True,
     )
     summary = canvas.conversation_summary(base, args.ui_base, response)
@@ -328,7 +327,6 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--ui-base", default=canvas.DEFAULT_UI_BASE)
     parser.add_argument("--repo", type=Path, default=Path.cwd())
     parser.add_argument("--run-id", required=True)
-    parser.add_argument("--agent-profile", default=canvas.DEFAULT_AGENT_PROFILE)
     parser.add_argument("--cells", nargs="+", choices=ACTIVE_WORK_CELLS, default=list(ACTIVE_WORK_CELLS))
     parser.add_argument("--child-max-iterations", type=int, default=60)
     parser.add_argument("--cell-timeout-seconds", type=int, default=1800)
